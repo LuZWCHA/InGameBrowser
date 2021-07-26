@@ -8,6 +8,7 @@ import joptsimple.internal.Strings;
 import net.minecraft.client.gui.FontRenderer;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public class TextView extends FrameLayout {
     private MyLabel label;
@@ -25,16 +26,14 @@ public class TextView extends FrameLayout {
 
     public TextView(@Nonnull RootView rootView, ViewGroup parent) {
         super(rootView, parent);
-        label = new MyLabel(getRoot().getFontRenderer(), 0, 0, 0, 0, -1);
-        label.setBackColor(0);
-        label.setBorderColor(0);
-        label.setBorderWidth(0);
-        label.setFirst(Strings.EMPTY);
-        setClickable(false);
     }
 
     public TextView(@Nonnull ViewGroup parent) {
         super(parent);
+    }
+
+    @Override
+    protected void onCreate(RootView rootView, @Nullable ViewGroup parent) {
         label = new MyLabel(getRoot().getFontRenderer(), 0, 0, 0, 0, -1);
         label.setBackColor(0);
         label.setBorderColor(0);

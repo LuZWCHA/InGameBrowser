@@ -7,6 +7,7 @@ buildscript {
         classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '4.1.+', changing: true
     }
 }
+
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'maven-publish'
 
@@ -107,7 +108,14 @@ dependencies {
     minecraft 'net.minecraftforge:forge:1.16.5-36.1.0'
     compileOnly fg.deobf(files('libs/mcef-1.16.5-2.11-api.jar'))
     runtimeOnly files('libs/mcef-1.16.5-2.11-deobf.jar')
+
+    implementation 'com.google.auto.service:auto-service:1.0'
+    annotationProcessor 'com.google.auto.service:auto-service:1.0'
 }
+
+//javaCompileOptions{
+//    annotationProcessorOptions.includeCompileClasspath = true
+//}
 
 // Example for how to get properties into the manifest for reading by the runtime..
 jar {

@@ -11,6 +11,7 @@ import net.minecraft.util.math.EntityRayTraceResult;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.vector.Vector2f;
 import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.math.vector.Vector3f;
 import net.minecraft.util.math.vector.Vector4f;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -79,14 +80,13 @@ public class InGameBrowser
         Entity entity = Minecraft.getInstance().getRenderViewEntity();
         if(entity != null) {
             final float pt = worldLastEvent.getPartialTicks();
-            Vector4f vector4f = RenderHelper.getEntityRenderPos(entity, worldLastEvent.getPartialTicks());
+            Vector3d vector3d = Minecraft.getInstance().gameRenderer.getActiveRenderInfo().getProjectedView();
 
-            double x = vector4f.getX();
-            double y = vector4f.getY();
-            double z = vector4f.getZ();
+            double x = vector3d.getX();
+            double y = vector3d.getY();
+            double z = vector3d.getZ();
             MatrixStack stack = worldLastEvent.getMatrixStack();
             IRenderTypeBuffer buffer = IRenderTypeBuffer.getImpl(Tessellator.getInstance().getBuffer());
-
             ScreenManager.getInstance().render(stack, buffer, x, y, z, pt);
 
             RayTraceResult rayTraceResult = Minecraft.getInstance().objectMouseOver;

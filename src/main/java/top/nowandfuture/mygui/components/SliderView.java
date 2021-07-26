@@ -1,11 +1,13 @@
 package top.nowandfuture.mygui.components;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
+import top.nowandfuture.mygui.GUIRenderer;
 import top.nowandfuture.mygui.RootView;
 import top.nowandfuture.mygui.View;
 import top.nowandfuture.mygui.ViewGroup;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.function.Consumer;
 
 public class SliderView extends View {
@@ -35,8 +37,31 @@ public class SliderView extends View {
     }
 
     @Override
+    protected void onCreate(RootView rootView, @Nullable ViewGroup parent) {
+
+    }
+
+    public SliderView(@Nonnull ViewGroup parent){
+        super(parent);
+    }
+
+    public void setSliderHalfHeight(int sliderHalfHeight) {
+        this.sliderHalfHeight = sliderHalfHeight;
+    }
+
+    public void setSliderHalfWidth(int sliderHalfWidth) {
+        this.sliderHalfWidth = sliderHalfWidth;
+    }
+
+    @Override
     protected void onLoad() {
-        setProgress(DEFAULT_PROGRESS);
+//        setProgress(DEFAULT_PROGRESS);
+    }
+
+    @Override
+    protected void onLayoutForSelf(int suggestWidth, int suggestHeight) {
+        super.onLayoutForSelf(suggestWidth, suggestHeight);
+        setProgress(progress);
     }
 
     public SliderView setRange(float Max, float Min, float defaultValue) {
@@ -97,16 +122,16 @@ public class SliderView extends View {
     }
 
     protected void drawLine(MatrixStack stack) {
-        hLine(stack, sliderHalfWidth, getWidth() - sliderHalfWidth, getHeight() / 2, colorInt(180, 180, 180, 180), 1);
+        GUIRenderer.getInstance().hLine(stack, sliderHalfWidth, getWidth() - sliderHalfWidth, getHeight() / 2, colorInt(180, 180, 180, 180));
     }
 
     protected void drawSlider(MatrixStack stack) {
-        drawRect(stack, sliderX - sliderHalfWidth, sliderY - sliderHalfHeight, sliderX + sliderHalfWidth, sliderY + sliderHalfHeight,
+        GUIRenderer.getInstance().fill(stack, sliderX - sliderHalfWidth, sliderY - sliderHalfHeight, sliderX + sliderHalfWidth, sliderY + sliderHalfHeight,
                 colorInt(80, 80, 80, 200));
-        drawRect(stack, sliderX - sliderHalfWidth + 1, sliderY - sliderHalfHeight + 1, sliderX + sliderHalfWidth - 1, sliderY + sliderHalfHeight - 1,
+        GUIRenderer.getInstance().fill(stack, sliderX - sliderHalfWidth + 1, sliderY - sliderHalfHeight + 1, sliderX + sliderHalfWidth - 1, sliderY + sliderHalfHeight - 1,
                 colorInt(220, 220, 220, 255));
         if (drag) {
-            drawRect(stack, sliderX - sliderHalfWidth + 1, sliderY - sliderHalfHeight + 1, sliderX + sliderHalfWidth - 1, sliderY + sliderHalfHeight - 1,
+            GUIRenderer.getInstance().fill(stack, sliderX - sliderHalfWidth + 1, sliderY - sliderHalfHeight + 1, sliderX + sliderHalfWidth - 1, sliderY + sliderHalfHeight - 1,
                     colorInt(180, 180, 180, 180));
         }
     }
@@ -218,5 +243,13 @@ public class SliderView extends View {
 
     public void setEnable(boolean enable) {
         this.enable = enable;
+    }
+
+    public void setVertical(boolean vertical) {
+        isVertical = vertical;
+    }
+
+    public boolean isVertical() {
+        return isVertical;
     }
 }

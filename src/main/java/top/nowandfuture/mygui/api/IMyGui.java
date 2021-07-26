@@ -2,7 +2,7 @@ package top.nowandfuture.mygui.api;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 
-public interface MyGui extends IEvents.IInputEvent {
+public interface IMyGui extends IEvents.IInputEvent {
     int getX();
 
     int getY();

@@ -35,7 +35,7 @@ public abstract class AbstractLayout<T extends LayoutParameter> extends ViewGrou
     }
 
     protected void drawBackground(MatrixStack stack) {
-        drawRect(stack, 0, 0, getWidth(), getHeight(), colorInt(color));
+        GUIRenderer.getInstance().fill(stack, 0, 0, getWidth(), getHeight(), colorInt(color));
     }
 
     @Override

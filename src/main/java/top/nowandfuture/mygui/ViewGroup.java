@@ -5,7 +5,7 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import net.minecraft.client.Minecraft;
 import top.nowandfuture.mygui.api.IAction;
 import top.nowandfuture.mygui.api.ISizeChanged;
-import top.nowandfuture.mygui.api.MyGui;
+import top.nowandfuture.mygui.api.IMyGui;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.util.math.vector.Vector3f;
@@ -19,7 +19,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
 
-public abstract class ViewGroup implements MyGui, ISizeChanged {
+public abstract class ViewGroup implements IMyGui, ISizeChanged {
 
     private int width;
     private int height;
@@ -141,17 +141,14 @@ public abstract class ViewGroup implements MyGui, ISizeChanged {
         if (parent != null) {
             parent.addChild(this);
         }
+
+        onCreate(rootView, parent);
     }
 
-    public ViewGroup(@NotNull ViewGroup parent) {
-        this.children = new LinkedList<>();
-        this.parent = parent;
-        this.root = parent.getRoot();
-        this.isLoaded = false;
-        padBottom = padLeft = padRight = padTop = 0;
-        viewClipMask = new RectangleClipMask(this);
+    protected abstract void onCreate(RootView rootView, @Nullable ViewGroup parent);
 
-        parent.addChild(this);
+    public ViewGroup(@NotNull ViewGroup parent) {
+        this(parent.getRoot(), parent);
     }
 
     public void setReachable(boolean reachable) {
@@ -551,7 +548,7 @@ public abstract class ViewGroup implements MyGui, ISizeChanged {
             mouseX -= lastPressedChild.getX();
             mouseY -= lastPressedChild.getY();
             lastPressedChild.mouseReleased(mouseX, mouseY, button);
-        } else {
+        } else if(lastPressBtn != -1){
             lastPressBtn = -1;
             onReleased(mouseX, mouseY, button);
             if (RootView.isInside(this, mouseX, mouseY)) {
@@ -804,7 +801,12 @@ public abstract class ViewGroup implements MyGui, ISizeChanged {
 
     public void addChild(ViewGroup viewGroup) {
         if (!children.contains(viewGroup)) {
-            viewGroup.parent = this;
+            if(viewGroup.getParent() != this) {
+                if(viewGroup.getParent() != null){
+                    viewGroup.getParent().removeChild(viewGroup);
+                }
+                viewGroup.parent = this;
+            }
             children.add(viewGroup);
         }
     }
@@ -1175,7 +1177,7 @@ public abstract class ViewGroup implements MyGui, ISizeChanged {
             return new GuiRegion(left, top, right, bottom);
         }
 
-        public static GuiRegion of(MyGui gui) {
+        public static GuiRegion of(IMyGui gui) {
             return new GuiRegion(gui.getX(), gui.getY(), gui.getX() + gui.getWidth(), gui.getY() + gui.getHeight());
         }
 

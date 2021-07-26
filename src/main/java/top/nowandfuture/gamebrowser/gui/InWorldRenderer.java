@@ -237,6 +237,9 @@ public class InWorldRenderer extends IRenderer.DefaultRenderer {
             GL20.GL_QUADS, 2097152,
             RenderType.State.getBuilder().build(false));
 
+
+    // to draw the texture in world should provide the brightness of the vertexes...
+    // this function cause white screen with optifine, any guis base on this method should be rewrote!
     private void innerBlit(Matrix4f matrix, int x1, int x2, int y1, int y2, int blitOffset, float minU, float maxU, float minV, float maxV) {
 
         BufferBuilder builder = Tessellator.getInstance().getBuffer();

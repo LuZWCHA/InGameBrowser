@@ -8,6 +8,8 @@ import top.nowandfuture.mygui.RootView;
 import top.nowandfuture.mygui.ViewGroup;
 import top.nowandfuture.mygui.api.NotNull;
 
+import javax.annotation.Nullable;
+
 
 public class FrameLayout extends AbstractLayout<FrameLayout.FrameLayoutParameter> {
 
@@ -39,6 +41,11 @@ public class FrameLayout extends AbstractLayout<FrameLayout.FrameLayoutParameter
 
     public FrameLayout(@NotNull RootView rootView, ViewGroup parent) {
         super(rootView, parent);
+    }
+
+    @Override
+    protected void onCreate(RootView rootView, @Nullable ViewGroup parent) {
+
     }
 
     @Override

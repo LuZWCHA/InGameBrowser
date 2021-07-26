@@ -5,6 +5,7 @@ import top.nowandfuture.mygui.RootView;
 import top.nowandfuture.mygui.ViewGroup;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,22 +33,20 @@ public class SimpleStringList extends MyAbstractList<MyAbstractList.ViewHolder> 
 
         public StringViewHolder(@Nonnull RootView rootView, MyAbstractList parent) {
             super(rootView, parent);
-            init();
         }
 
         public StringViewHolder(@Nonnull RootView rootView, MyAbstractList parent, @Nonnull LayoutParameter layoutParameter) {
             super(rootView, parent, layoutParameter);
-            init();
         }
 
-        private void init() {
+        @Override
+        protected void onCreate(RootView rootView, @Nullable ViewGroup parent) {
             textView = new TextView(getRoot(), this);
             textView.setWidth(80);
             textView.setHeight(12);
             textView.setX(0);
             textView.setY(0);
             textView.setClickable(false);
-            addChild(textView);
         }
 
         public void setString(String string) {

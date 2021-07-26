@@ -20,15 +20,14 @@ public class EditorView extends View {
 
     public EditorView(@Nonnull RootView rootView) {
         super(rootView);
-        init();
     }
 
     public EditorView(@Nonnull ViewGroup parent) {
         super(parent);
-        init();
     }
 
-    private void init() {
+    @Override
+    protected void onCreate(RootView rootView, @Nullable ViewGroup parent) {
         textField = new MyTextFieldWidget(getRoot().context.fontRenderer,
                 0, 0, this.getWidth(), this.getHeight(),
                 new StringTextComponent(Strings.EMPTY));

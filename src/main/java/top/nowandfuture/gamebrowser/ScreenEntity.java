@@ -13,6 +13,9 @@ import net.minecraft.world.World;
 import top.nowandfuture.mygui.MyScreen;
 
 import javax.annotation.Nonnull;
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class ScreenEntity extends ClientEntity {
     public final static EntityType SCREEN_ENTITY_TYPE =
@@ -23,11 +26,12 @@ public class ScreenEntity extends ClientEntity {
     private MyScreen screen;
     private Vector3d anchor;
     private int screenWidth, screenHeight;
+    private float brightness = .5f;
 
     @Override
     public void setBoundingBox(AxisAlignedBB bb) {
         if (world.isRemote && screen != null) {
-            final  double scale = ScreenManager.getInstance().getScale();
+            final double scale = ScreenManager.getInstance().getScale();
 
             screen.resize(Minecraft.getInstance(),
                     ((int) ((bb.maxX - bb.minX) / scale)),
@@ -53,21 +57,21 @@ public class ScreenEntity extends ClientEntity {
         this.setRawPosition(x, y, z);
     }
 
-    public void updateBoundBox(){
+    public void updateBoundBox() {
         updateBoundBox(getPosX(), getPosY(), getPosZ());
     }
 
-    private void updateBoundBox(double x, double y, double z){
+    private void updateBoundBox(double x, double y, double z) {
         Vector3d start = new Vector3d(x - screenWidth + 1, y, z);
         Vector3d end = new Vector3d(x + 1, y + screenHeight, z);
 
-        Vector3d offset = start.add(screenWidth -.5, 0, .5);
+        Vector3d offset = start.add(screenWidth - .5, 0, .5);
 
         start = start.subtract(offset);
         end = end.subtract(offset);
 
         start = start.rotateYaw((float) ((180 - rotationYaw) / 180 * Math.PI));
-        end = end.rotateYaw((float) ((180 - rotationYaw) / 180  * Math.PI));
+        end = end.rotateYaw((float) ((180 - rotationYaw) / 180 * Math.PI));
 
         start = start.add(offset);
         end = end.add(offset);
@@ -75,9 +79,9 @@ public class ScreenEntity extends ClientEntity {
         this.anchor = start;
         this.setBoundingBox(new AxisAlignedBB(start, end));
 
-        if(screen != null){
-            final  double scale = ScreenManager.getInstance().getScale();
-            screen.resize(Minecraft.getInstance(), (int)(screenWidth / scale), (int)(screenHeight / scale));
+        if (screen != null) {
+            final double scale = ScreenManager.getInstance().getScale();
+            screen.resize(Minecraft.getInstance(), (int) (screenWidth / scale), (int) (screenHeight / scale));
         }
     }
 
@@ -85,75 +89,68 @@ public class ScreenEntity extends ClientEntity {
         return anchor;
     }
 
-
     private int maxWidth = 16;
     private int maxHeight = 16;
 
-    public void resize(boolean l, boolean r, boolean t, boolean b){
-        if(l){
+    public void resize(boolean l, boolean r, boolean t, boolean b) {
+        if (l) {
             screenWidth += screenWidth > 1 ? -1 : 0;
             setPosition(getPosX(), getPosY(), getPosZ());
         }
-        if(r){
+        if (r) {
             screenWidth += screenWidth < maxWidth ? 1 : 0;
-            setPosition(getPosX() , getPosY(), getPosZ());
+            setPosition(getPosX(), getPosY(), getPosZ());
         }
-        if(t){
+        if (t) {
             screenHeight += screenHeight < maxHeight ? 1 : 0;
-            setPosition(getPosX() , getPosY(), getPosZ());
+            setPosition(getPosX(), getPosY(), getPosZ());
         }
-        if(b){
+        if (b) {
             screenHeight += screenHeight > 1 ? -1 : 0;
-            setPosition(getPosX() , getPosY(), getPosZ());
+            setPosition(getPosX(), getPosY(), getPosZ());
         }
     }
 
-    public void onMouseMoved(double x, double y){
-        if(screen != null){
-            screen.mouseMoved(x, y);
-        }
+    public void onMouseMoved(double x, double y) {
+        Optional.ofNullable(screen)
+                .ifPresent(screen -> screen.mouseMoved(x, y));
     }
 
-    public boolean onMouseClicked(double x, double y, int btn){
-        if(screen != null){
-            return screen.mouseClicked(x, y, btn);
-        }
-        return false;
+    public boolean onMouseClicked(double x, double y, int btn) {
+        return Optional.ofNullable(screen)
+                .map(screen -> screen.mouseClicked(x, y, btn))
+                .orElse(false);
     }
 
-    public boolean onMouseReleased(double x, double y, int btn){
-        if(screen != null){
-            return screen.mouseReleased(x, y, btn);
-        }
-        return false;
+    public boolean onMouseReleased(double x, double y, int btn) {
+        return Optional.ofNullable(screen)
+                .map(screen -> screen.mouseReleased(x, y, btn))
+                .orElse(false);
     }
 
-    public boolean onMouseScrolled(double x, double y, double dy){
-        if(screen != null){
-            return screen.mouseScrolled(x, y, dy);
-        }
-        return false;
+    public boolean onMouseScrolled(double x, double y, double dy) {
+        return Optional.ofNullable(screen)
+                .map(screen -> screen.mouseScrolled(x, y, dy))
+                .orElse(false);
     }
 
-    public boolean onCharTyped(char c, int m){
-        if(screen != null){
-            return screen.charTyped(c, m);
-        }
-        return false;
+    public boolean onCharTyped(char c, int m) {
+        return Optional.ofNullable(screen)
+                .map(screen -> screen.charTyped(c, m))
+                .orElse(false);
     }
 
-    public boolean onKeyPressed(int keyCode, int scanCode, int modifiers){
-        if(screen != null){
-            return screen.keyPressed(keyCode, scanCode, modifiers);
-        }
-        return false;
+    public boolean onKeyPressed(int keyCode, int scanCode, int modifiers) {
+        return Optional.ofNullable(screen)
+                .map(screen -> screen.keyPressed(keyCode, scanCode, modifiers))
+                .orElse(false);
+
     }
 
-    public boolean onKeyReleased(int keyCode, int scanCode, int modifiers){
-        if(screen != null){
-            return screen.keyReleased(keyCode, scanCode, modifiers);
-        }
-        return false;
+    public boolean onKeyReleased(int keyCode, int scanCode, int modifiers) {
+        return Optional.ofNullable(screen)
+                .map(screen -> screen.keyReleased(keyCode, scanCode, modifiers))
+                .orElse(false);
     }
 
     public EntitySize getSize() {
@@ -188,13 +185,13 @@ public class ScreenEntity extends ClientEntity {
         this.screen = screen;
     }
 
-    public void loseFocus(){
-        if(screen != null){
-            screen.getRootView().forceLoseFocus();
-        }
+    public void loseFocus() {
+        Optional.ofNullable(screen)
+                .ifPresent(MyScreen::forceLoseFocus);
+
     }
 
-    public MyScreen getScreen(){
+    public MyScreen getScreen() {
         return screen;
     }
 
@@ -224,6 +221,7 @@ public class ScreenEntity extends ClientEntity {
         super.readAdditional(compound);
         this.screenWidth = compound.getInt("screenWidth");
         this.screenWidth = compound.getInt("screenHeight");
+        this.brightness = compound.getFloat("brightness");
     }
 
     @Override
@@ -231,18 +229,15 @@ public class ScreenEntity extends ClientEntity {
         super.writeAdditional(compound);
         compound.putInt("screenWidth", this.screenWidth);
         compound.putInt("screenHeight", this.screenHeight);
+        compound.putFloat("brightness", this.brightness);
     }
 
     @Override
     public String toString() {
         return "ScreenEntity{" +
-                "screen=" + screen +
-                ", screenWidth=" + screenWidth +
+                "screenWidth=" + screenWidth +
                 ", screenHeight=" + screenHeight +
+                ", brightness=" + brightness +
                 '}';
-    }
-
-    public void onMouseDragged(float x, float y, int btn, float dx, float dy) {
-
     }
 }

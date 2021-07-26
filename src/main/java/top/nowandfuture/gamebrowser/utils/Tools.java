@@ -18,4 +18,6 @@ public class Tools {
         double s1 = n.dotProduct(v0.subtract(p0)) / n.dotProduct(u);
         return u.scale(s1).add(p0);
     }
+
+
 }

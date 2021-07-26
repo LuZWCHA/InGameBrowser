@@ -51,12 +51,19 @@ public class Dialog {
     public void show() {
         frameLayout.load();
         frameLayout.setVisible(true);
+        frameLayout.layout(frameLayout.getWidth(), frameLayout.getHeight());
     }
 
     public void dispose() {
         inCenter = false;
         content.destroy();
         content = null;
+    }
+
+    protected void layout(int sw, int sh){
+        if(isShowing()) {
+            frameLayout.layout(sw, sh);
+        }
     }
 
     public boolean isShowing() {

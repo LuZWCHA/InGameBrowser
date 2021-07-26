@@ -1,12 +1,13 @@
 package top.nowandfuture.gamebrowser.screens;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.AbstractGui;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.vector.Quaternion;
 import net.minecraft.util.math.vector.Vector3f;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraftforge.fml.client.gui.GuiUtils;
 import net.montoyo.mcef.api.IBrowser;
 import net.montoyo.mcef.api.IDisplayHandler;
 import org.lwjgl.glfw.GLFW;
@@ -22,7 +23,6 @@ import top.nowandfuture.mygui.components.EditorView;
 import top.nowandfuture.mygui.layouts.LinearLayout;
 
 import javax.annotation.Nonnull;
-import java.util.Optional;
 
 public class MainScreen extends MyScreen {
     private BrowserView browserView;
@@ -35,7 +35,8 @@ public class MainScreen extends MyScreen {
 
     @Override
     protected void onDrawBackgroundLayer(MatrixStack stack, int vOffset) {
-        GUIRenderer.getInstance().fill(stack, 0, 0, width, height, RenderHelper.colorInt(50, 50, 50, 255));
+        // draw the rectangle into depth buffer, color is not important
+        AbstractGui.fill(stack, 0, 0, width, height, RenderHelper.colorInt(50, 50, 50, 255));
     }
 
     private final ResourceLocation ARROW = new ResourceLocation(InGameBrowser.ID, "textures/gui/arrow_down.png");
@@ -168,13 +169,8 @@ public class MainScreen extends MyScreen {
         browserView.setBrowserRenderId(this.id);
         browserView.setFlowParentWidth(true);
         browserView.setFlowParentHeight(true);
-        browserView.setFocusListener(Optional.of(new BrowserView.IFocusListener() {
-            @Override
-            public void onFocusChanged(boolean f) {
-                titleView.setFocus(f);
-            }
-        }));
-        browserView.setDisplayHandler(Optional.of(new IDisplayHandler() {
+        browserView.setFocusListener(titleView::setFocus);
+        browserView.setDisplayHandler(new IDisplayHandler() {
             @Override
             public void onAddressChange(IBrowser browser, String url) {
                 editorView.setText(url);
@@ -194,7 +190,7 @@ public class MainScreen extends MyScreen {
             public void onStatusMessage(IBrowser browser, String value) {
                 post(new InWorldTextTipEvent(value, 1000, RootView.AbstractDataTipEvent.Position.LEFT_BOTTOM));
             }
-        }));
+        });
 
         contentLayout.setClipping(true);
     }
@@ -202,15 +198,16 @@ public class MainScreen extends MyScreen {
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
-            return getRootView().forceLoseFocus();
+            return forceLoseFocus();
         }
         return getRootView().keyPressed(keyCode, scanCode, modifiers);
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {// 0: left button, 1: right button, 2: mid button
         if (button == 1 && (left | right | top | bottom)) {
             ScreenManager.getInstance().resizeEntity(this, left, right, top, bottom);
+            forceLoseFocus();
             return true;
         }else {
             return super.mouseClicked(mouseX, mouseY, button);

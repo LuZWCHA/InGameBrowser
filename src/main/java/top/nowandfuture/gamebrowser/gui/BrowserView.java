@@ -1,39 +1,29 @@
 package top.nowandfuture.gamebrowser.gui;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.systems.RenderSystem;
 import joptsimple.internal.Strings;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.util.ResourceLocation;
 import net.montoyo.mcef.api.*;
-import top.nowandfuture.gamebrowser.screens.MainScreen;
 import top.nowandfuture.gamebrowser.utils.RenderHelper;
-import top.nowandfuture.mygui.GUIRenderer;
 import top.nowandfuture.mygui.RootView;
 import top.nowandfuture.mygui.ViewGroup;
 
-import javax.swing.*;
-import java.awt.event.KeyEvent;
+import javax.annotation.Nullable;
 import java.awt.event.MouseEvent;
 import java.util.Optional;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.stream.Stream;
 
 public class BrowserView extends ViewGroup {
 
     private String browserRenderId;
-    private Optional<IBrowser> browser;
+    private IBrowser browser;
     private String urlToLoad;
     private String home = "http://baidu.com";
 
-    private Optional<IDisplayHandler> displayHandler;
-    private Optional<IFocusListener> focusListener;
+    private IDisplayHandler displayHandler;
+    private IFocusListener focusListener;
 
-    public void setFocusListener(Optional<IFocusListener> focusListener) {
+    public void setFocusListener(IFocusListener focusListener) {
         this.focusListener = focusListener;
     }
 
@@ -45,7 +35,7 @@ public class BrowserView extends ViewGroup {
         this.browserRenderId = browserRenderId;
     }
 
-    public interface IFocusListener{
+    public interface IFocusListener {
         void onFocusChanged(boolean f);
     }
 
@@ -53,22 +43,25 @@ public class BrowserView extends ViewGroup {
         super(rootView);
     }
 
-    public void setUrlToLoad(String urlToLoad) {
-        this.urlToLoad = urlToLoad;
-        browser.ifPresent(new Consumer<IBrowser>() {
-            @Override
-            public void accept(IBrowser iBrowser) {
-                iBrowser.loadURL(urlToLoad);
-                BrowserView.this.urlToLoad = null;
-            }
-        });
+    @Override
+    public void onCreate(RootView rootView, @Nullable ViewGroup parent) {
+
     }
 
-    public BrowserView(ViewGroup parent){
+    public void setUrlToLoad(String urlToLoad) {
+        this.urlToLoad = urlToLoad;
+        Optional.ofNullable(browser)
+                .ifPresent(iBrowser -> {
+                    iBrowser.loadURL(urlToLoad);
+                    BrowserView.this.urlToLoad = null;
+                });
+    }
+
+    public BrowserView(ViewGroup parent) {
         super(parent);
     }
 
-    public Optional<IBrowser> getBrowser() {
+    public IBrowser getBrowser() {
         return browser;
     }
 
@@ -81,120 +74,127 @@ public class BrowserView extends ViewGroup {
                 @Override
                 public void onAddressChange(IBrowser browser, String url) {
                     //ugliness codes...
-                    if(getBrowser().isPresent() && getDisplayHandler().isPresent()){
-                        if(getBrowser().get() == browser){
-                            getDisplayHandler().get().onAddressChange(browser, url);
-                        }
-                    }
+                    Optional.ofNullable(getDisplayHandler())
+                            .ifPresent(iDisplayHandler -> {
+                                if (getBrowser() == browser) {
+                                    iDisplayHandler.onAddressChange(browser, url);
+                                }
+                            });
                 }
 
                 @Override
                 public void onTitleChange(IBrowser browser, String title) {
-                    if(getBrowser().isPresent() && getDisplayHandler().isPresent()){
-                        if(getBrowser().get() == browser){
-                            getDisplayHandler().get().onTitleChange(browser, title);
-                        }
-                    }
+
+                    Optional.ofNullable(getDisplayHandler())
+                            .ifPresent(iDisplayHandler -> {
+                                if (getBrowser() == browser) {
+                                    iDisplayHandler.onTitleChange(browser, title);
+                                }
+                            });
                 }
 
                 @Override
                 public void onTooltip(IBrowser browser, String text) {
-                    if(getBrowser().isPresent() && getDisplayHandler().isPresent()){
-                        if(getBrowser().get() == browser){
-                            getDisplayHandler().get().onTooltip(browser, text);
-                        }
-                    }
+
+                    Optional.ofNullable(getDisplayHandler())
+                            .ifPresent(iDisplayHandler -> {
+                                if (getBrowser() == browser) {
+                                    iDisplayHandler.onTooltip(browser, text);
+                                }
+                            });
                 }
 
                 @Override
                 public void onStatusMessage(IBrowser browser, String value) {
-                    if(getBrowser().isPresent() && getDisplayHandler().isPresent()){
-                        if(getBrowser().get() == browser){
-                            getDisplayHandler().get().onStatusMessage(browser, value);
-                        }
-                    }
-                }
-            });
-            browser = Optional.ofNullable(api.createBrowser(urlToLoad == null ? home : urlToLoad));
-            browser.ifPresent(new Consumer<IBrowser>() {
-                @Override
-                public void accept(IBrowser iBrowser) {
-                    iBrowser.visitSource(new IStringVisitor() {
-                        @Override
-                        public void visit(String str) {
 
-                        }
-                    });
+                    Optional.ofNullable(getDisplayHandler())
+                            .ifPresent(iDisplayHandler -> {
+                                if (getBrowser() == browser) {
+                                    iDisplayHandler.onStatusMessage(browser, value);
+                                }
+                            });
                 }
             });
-        }else{
-            browser = Optional.empty();
+            browser = api.createBrowser(urlToLoad == null ? home : urlToLoad);
+            Optional.ofNullable(browser)
+                    .ifPresent(iBrowser -> iBrowser.visitSource(
+                            str -> {
+                                //do nothing
+                            }));
+        } else {
+            browser = null;
 
         }
         urlToLoad = null;
-     }
+    }
 
     @Override
     protected void onLayout(int parentWidth, int parentHeight) {
-        if(flowParentWidth){
+        if (flowParentWidth) {
             setWidthWithoutLayout(parentWidth);
         }
-        if(flowParentHeight){
+        if (flowParentHeight) {
             setHeightWithoutLayout(parentHeight);
         }
-        browser.ifPresent((IBrowser iBrowser) -> {
-            if(iBrowser.isActivate() && getWidth() > 0 && getHeight() > 0) {
-                iBrowser.resize(getWidth(), getHeight());
-            }
-        });
+        Optional.ofNullable(browser)
+                .ifPresent((IBrowser iBrowser) -> {
+                    if (iBrowser.isActivate() && getWidth() > 0 && getHeight() > 0) {
+                        iBrowser.resize(getWidth(), getHeight());
+                    }
+                });
     }
 
     @Override
     public void destroy() {
         super.destroy();
-        browser.ifPresent(IBrowser::close);
+        Optional.ofNullable(browser)
+                .ifPresent(IBrowser::close);
     }
 
     @Override
     protected void onDraw(MatrixStack stack, int mouseX, int mouseY, float partialTicks) {
-        browser.ifPresent(iBrowser -> {
-            ResourceLocation location = iBrowser.getTextureLocation();
+        Optional.ofNullable(browser)
+                .ifPresent(iBrowser -> {
+                    ResourceLocation location = iBrowser.getTextureLocation();
+                    Optional.ofNullable(location)
+                            .ifPresent(resourceLocation -> RenderHelper.blit1(stack, 0, 0, 0, 0, 0, getWidth(), getHeight(), getHeight(), getWidth(), location));
 
-            if(location != null) RenderHelper.blit1(stack, 0, 0, 0,0, 0, getWidth(), getHeight(), getHeight(), getWidth(), location);
-
-        });
-
-        if (!isHovering()) {
-            isPressed = false;
-        }
+                });
     }
 
     @Override
     public void onUpdate() {
         super.onUpdate();
-        if(urlToLoad != null){
-            setUrlToLoad(urlToLoad);
-        }
+        Optional.ofNullable(urlToLoad)
+                .ifPresent(s -> setUrlToLoad(urlToLoad));
+
     }
 
     public void goBack() {
-        browser.ifPresent(IBrowser::goBack);
+        Optional.ofNullable(browser)
+                .ifPresent(IBrowser::goBack);
     }
 
     public void goForward() {
-        browser.ifPresent(IBrowser::goForward);
+        Optional.ofNullable(browser)
+                .ifPresent(IBrowser::goForward);
     }
 
     public boolean isActivate() {
-        return browser.isPresent();
+        return Optional.ofNullable(browser)
+                .map(IBrowser::isActivate)
+                .orElse(false);
     }
 
     public boolean isPageLoading() {
-        return browser.isPresent() && browser.get().isPageLoading();
+        return Optional.ofNullable(browser)
+                .map(IBrowser::isPageLoading)
+                .orElse(false);
     }
 
     public String getUrlLoaded() {
-        return browser.isPresent() ? browser.get().getURL() : Strings.EMPTY;
+        return Optional.ofNullable(browser)
+                .map(IBrowser::getURL).orElse(Strings.EMPTY);
     }
 
     @Override
@@ -210,87 +210,103 @@ public class BrowserView extends ViewGroup {
     @Override
     protected void onReleased(int mouseX, int mouseY, int state) {
         //int x, int y, int mods, int btn, boolean pressed, int ccnt
-        if(isPressed)
-            browser.ifPresent(iBrowser -> iBrowser.injectMouseButton(mouseX, mouseY, getMask(), remapBtn(state), false, 1));
-
-        isPressed = false;
+        Optional.ofNullable(browser).ifPresent(iBrowser -> iBrowser.injectMouseButton(mouseX, mouseY, getMask(), remapBtn(state), false, 1));
     }
 
-    boolean isPressed = false;
-    int btn = -1;
-    int lastX = -1, lastY = -1;
+
 
     @Override
     protected boolean onPressed(int mouseX, int mouseY, int state) {
 
-        isPressed = true;
-        btn = state;
+        Optional<IBrowser> browserOptional = Optional.ofNullable(browser);
+
+        return browserOptional
+                .map(iBrowser -> {
+                    iBrowser.injectMouseButton(mouseX, mouseY, getMask(), remapBtn(state), true, 1);
+                    return true;
+                })
+                .orElse(false);
+
+
         //int x, int y, int mods, int btn, boolean pressed, int ccnt
-        browser.ifPresent(iBrowser -> iBrowser.injectMouseButton(mouseX, mouseY, getMask(), remapBtn(state), true, 1));
-        System.out.println(state);
-        return browser.isPresent();
+
     }
 
     @Override
     protected boolean onMouseScrolled(int mouseX, int mouseY, float delta) {
-        browser.ifPresent(iBrowser -> iBrowser.injectMouseWheel(mouseX, mouseY, getMask(), 1, ((int) delta * 100)));
+        Optional<IBrowser> browserOptional = Optional.ofNullable(browser);
 
-        return browser.isPresent() || super.onMouseScrolled(mouseX, mouseY, delta);
+        return browserOptional
+                .map(iBrowser -> {
+                    iBrowser.injectMouseWheel(mouseX, mouseY, getMask(), 1, ((int) delta * 100));
+                    return true;
+                })
+                .orElseGet(() -> BrowserView.super.onMouseScrolled(mouseX, mouseY, delta));
+
     }
 
     int lastKeyCode;
+
     @Override
     protected boolean onKeyPressed(int keyCode, int scanCode, int modifiers) {
         //int x, int y, int mods, int btn, boolean pressed, int ccnt
-        browser.ifPresent(iBrowser -> iBrowser.injectKeyPressedByKeyCode(keyCode, (char) keyCode, getMask()));
-        return browser.isPresent() || super.keyPressed(keyCode, scanCode, modifiers);
+        Optional<IBrowser> browserOptional = Optional.ofNullable(browser);
+        return browserOptional
+                .map(iBrowser -> {
+                    iBrowser.injectKeyPressedByKeyCode(keyCode, (char) keyCode, getMask());
+                    return true;
+                })
+                .orElseGet(() -> BrowserView.super.keyPressed(keyCode, scanCode, modifiers));
     }
 
     @Override
     protected boolean onKeyReleased(int keyCode, int scanCode, int modifiers) {
         //int x, int y, int mods, int btn, boolean pressed, int ccnt
-        browser.ifPresent(iBrowser -> iBrowser.injectKeyReleasedByKeyCode(keyCode, (char) keyCode, getMask()));
+        Optional<IBrowser> browserOptional = Optional.ofNullable(browser);
 
-        return browser.isPresent() || super.onKeyReleased(keyCode, scanCode, modifiers);
+        return browserOptional
+                .map(iBrowser -> {
+                    iBrowser.injectKeyReleasedByKeyCode(keyCode, (char) keyCode, getMask());
+                    return true;
+                })
+                .orElseGet(() -> BrowserView.super.onKeyReleased(keyCode, scanCode, modifiers));
     }
 
     @Override
     public boolean onKeyType(char typedChar, int mod) {
         //int x, int y, int mods, int btn, boolean pressed, int ccnt
-        browser.ifPresent(new Consumer<IBrowser>() {
-            @Override
-            public void accept(IBrowser iBrowser) {
-                int mod = getMask();
-                iBrowser.injectKeyTyped(typedChar, lastKeyCode, mod);
-            }
-        });
-        return browser.isPresent() || super.onKeyType(typedChar, mod);
+        Optional<IBrowser> browserOptional = Optional.ofNullable(browser);
+
+        return browserOptional
+                .map(iBrowser -> {
+                    iBrowser.injectKeyTyped(typedChar, lastKeyCode, mod);
+                    return true;
+                })
+                .orElseGet(() -> BrowserView.super.onKeyType(typedChar, mod));
     }
 
     @Override
     protected boolean onMouseMoved(int mouseX, int mouseY) {
         //check the mouse btn was pressed or not
-        if (isPressed) {
-            if (lastX < 0 || lastY < 0) {
-                lastX = mouseX;
-                lastY = mouseY;
-            }
-            this.onMouseDragged(mouseX, mouseY, btn, mouseX - lastX, mouseY - lastY);
-            lastX = mouseX;
-            lastY = mouseY;
-        } else {
-            browser.ifPresent(iBrowser -> iBrowser.injectMouseMove(mouseX, mouseY, getMask(), mouseY < 0));
+        Optional<IBrowser> browserOptional = Optional.ofNullable(browser);
 
-            return browser.isPresent();
-        }
-        return super.onMouseMoved(mouseX, mouseY);
+        return browserOptional
+                .map(iBrowser -> {
+                    iBrowser.injectMouseMove(mouseX, mouseY, getMask(), mouseY < 0);
+                    return true;
+                })
+                .orElseGet(() -> BrowserView.super.onMouseMoved(mouseX, mouseY));
     }
 
     @Override
     protected boolean onMouseDragged(int mouseX, int mouseY, int state, int dx, int dy) {
-        browser.ifPresent(iBrowser -> iBrowser.injectMouseDrag(mouseX, mouseY, remapBtn(state), dx, dy));
-
-        return browser.isPresent() || super.onMouseDragged(mouseX, mouseY, state, dx, dy);
+        Optional<IBrowser> browserOptional = Optional.ofNullable(browser);
+        return browserOptional
+                .map(iBrowser -> {
+                    iBrowser.injectMouseDrag(mouseX, mouseY, remapBtn(state), dx, dy);
+                    return true;
+                })
+                .orElseGet(() -> BrowserView.super.onMouseDragged(mouseX, mouseY, state, dx, dy));
     }
 
     private static int getMask() {
@@ -311,23 +327,25 @@ public class BrowserView extends ViewGroup {
         return btn;
     }
 
-    public Optional<IDisplayHandler> getDisplayHandler() {
+    public IDisplayHandler getDisplayHandler() {
         return displayHandler;
     }
 
-    public void setDisplayHandler(final Optional<IDisplayHandler> displayHandler) {
+    public void setDisplayHandler(final IDisplayHandler displayHandler) {
         this.displayHandler = displayHandler;
     }
 
     @Override
     public void focused() {
         super.focused();
-        focusListener.ifPresent(iFocusListener -> iFocusListener.onFocusChanged(true));
+        Optional.ofNullable(focusListener)
+                .ifPresent(iFocusListener -> iFocusListener.onFocusChanged(true));
     }
 
     @Override
     public void loseFocus() {
         super.loseFocus();
-        focusListener.ifPresent(iFocusListener -> iFocusListener.onFocusChanged(false));
+        Optional.ofNullable(focusListener)
+                .ifPresent(iFocusListener -> iFocusListener.onFocusChanged(false));
     }
 }

@@ -2,16 +2,15 @@ package top.nowandfuture.mygui;
 
 
 import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.platform.GlStateManager;
 import top.nowandfuture.mygui.api.IEvents;
-import top.nowandfuture.mygui.api.MyGui;
+import top.nowandfuture.mygui.api.IMyGui;
 import top.nowandfuture.mygui.layouts.FrameLayout;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.shader.Framebuffer;
 
-public class RootView implements MyGui {
+public class RootView implements IMyGui {
     public Minecraft context = Minecraft.getInstance();
     private Screen guiContainer;
 
@@ -30,17 +29,17 @@ public class RootView implements MyGui {
         return topView;
     }
 
-    public static boolean isInside(MyGui gui, int mouseX, int mouseY) {
+    public static boolean isInside(IMyGui gui, int mouseX, int mouseY) {
         return mouseX >= 0 && mouseY >= 0 && mouseX <= gui.getWidth() && mouseY <= gui.getHeight();
     }
 
-    public static boolean isInside2(MyGui gui, int mouseXAtParent, int mouseYAtParent) {
+    public static boolean isInside2(IMyGui gui, int mouseXAtParent, int mouseYAtParent) {
         mouseXAtParent -= gui.getX();
         mouseYAtParent -= gui.getY();
         return mouseXAtParent >= 0 && mouseYAtParent >= 0 && mouseXAtParent <= gui.getWidth() && mouseYAtParent <= gui.getHeight();
     }
 
-    public static boolean isInside(MyGui parent, MyGui gui, int mouseX, int mouseY) {
+    public static boolean isInside(IMyGui parent, IMyGui gui, int mouseX, int mouseY) {
         mouseX += gui.getX();
         mouseY += gui.getY();
         return mouseX >= 0 && mouseY >= 0 && mouseX <= parent.getWidth() && mouseY <= parent.getHeight();
@@ -151,6 +150,7 @@ public class RootView implements MyGui {
 
         public Dialog build() {
             Dialog dialog = new Dialog(content);
+//            dialog.layout(rootView.getWidth(), rootView.getHeight());
             dialog.setSize(content.getWidth(), content.getHeight());
             rootView.setDialogView(dialog);
             return dialog;
@@ -159,6 +159,10 @@ public class RootView implements MyGui {
 
     public DialogBuilder createDialogBuilder(ViewGroup content) {
         return new DialogBuilder(this, content);
+    }
+
+    public ViewGroup getDialogLayout(){
+        return dialogView.getView();
     }
 
     void setDialogView(Dialog view) {
@@ -175,6 +179,8 @@ public class RootView implements MyGui {
 
     public void onSizeChanged(int oldW, int oldH, int w, int h) {
         topView.layout(this.getWidth(), this.getHeight());
+        dialogView.layout(this.getWidth(), this.getHeight());
+
     }
 
     @Override
@@ -249,16 +255,15 @@ public class RootView implements MyGui {
     public final void drawDialog(MatrixStack stack, int mouseX, int mouseY, float partialTicks) {
         if (!dialogView.isShowing()) return;
         ViewGroup content = dialogView.getView();
-        content.layout(this.getWidth(), this.getHeight());
 
-        GlStateManager.pushMatrix();
-        GlStateManager.translatef(content.getX(), content.getY(), 0);
+        stack.push();
+        stack.translate(content.getX(), content.getY(), -1);
         ViewGroup hover = content.checkHover(mouseX - content.getX(), mouseY - content.getY());
         if (hoverView != null) hoverView.setHovering(false);
         if (hover != null) hover.setHovering(true);
         hoverView = hover;
         content.draw(stack, mouseX - content.getX(), mouseY - content.getY(), partialTicks);
-        GlStateManager.popMatrix();
+        stack.pop();
     }
 
     public boolean isDialogShowing() {

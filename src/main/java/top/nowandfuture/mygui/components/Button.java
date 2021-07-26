@@ -10,13 +10,12 @@ import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 import org.lwjgl.opengl.GL20;
-import top.nowandfuture.mygui.api.NotNull;
-import top.nowandfuture.mygui.layouts.LinearLayout;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public class Button extends View {
-    private final MyButton btn;
+    private MyButton btn;
 
     private ResourceLocation location;
     private boolean vanillaStyle = true;
@@ -31,8 +30,8 @@ public class Button extends View {
     private ActionListener actionListener;
     private int imagePadding = 2;
 
-    public Button(@Nonnull ViewGroup parent) {
-        super(parent);
+    @Override
+    public void onCreate(RootView rootView, @Nullable ViewGroup parent) {
         btn = new MyButton(0, 0, getWidth(), getHeight(), ITextComponent.getTextComponentOrEmpty(""), new net.minecraft.client.gui.widget.button.Button.IPressable() {
             @Override
             public void onPress(net.minecraft.client.gui.widget.button.Button b) {
@@ -40,6 +39,10 @@ public class Button extends View {
             }
         });
         init();
+    }
+
+    public Button(@Nonnull ViewGroup parent) {
+        super(parent);
     }
 
     private void init() {

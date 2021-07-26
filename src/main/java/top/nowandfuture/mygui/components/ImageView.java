@@ -12,6 +12,7 @@ import net.minecraft.resources.IResource;
 import net.minecraft.util.ResourceLocation;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.IOException;
 
 public class ImageView extends View {
@@ -28,8 +29,14 @@ public class ImageView extends View {
         super(rootView, parent);
     }
 
+
     public ImageView(@Nonnull ViewGroup parent){
         super(parent);
+    }
+
+    @Override
+    protected void onCreate(RootView rootView, @Nullable ViewGroup parent) {
+
     }
 
     @Override

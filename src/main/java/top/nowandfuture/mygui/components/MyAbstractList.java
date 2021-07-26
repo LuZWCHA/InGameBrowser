@@ -5,10 +5,11 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.platform.GlStateManager;
 import top.nowandfuture.mygui.*;
 import top.nowandfuture.mygui.api.IAction;
-import top.nowandfuture.mygui.api.MyGui;
+import top.nowandfuture.mygui.api.IMyGui;
 import top.nowandfuture.mygui.layouts.FrameLayout;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -19,7 +20,7 @@ public abstract class MyAbstractList<T extends MyAbstractList.ViewHolder> extend
     public abstract static class OnItemClickedListener extends IAction.ActionClick {
 
         @Override
-        public void clicked(MyGui gui, int button) {
+        public void clicked(IMyGui gui, int button) {
 
         }
 
@@ -419,12 +420,10 @@ public abstract class MyAbstractList<T extends MyAbstractList.ViewHolder> extend
 
         public ViewHolder(@Nonnull RootView rootView, MyAbstractList parent) {
             super(rootView, parent);
-            this.list = parent;
         }
 
         public ViewHolder(@Nonnull RootView rootView, MyAbstractList parent, @Nonnull LayoutParameter lp) {
             super(rootView, parent, lp);
-            this.list = parent;
         }
 
         void setIndex(int index) {
@@ -437,6 +436,13 @@ public abstract class MyAbstractList<T extends MyAbstractList.ViewHolder> extend
 
         protected void onHover(MyAbstractList list, int mouseX, int mouseY, float partialTicks) {
 
+        }
+
+        @Override
+        protected void onCreate(RootView rootView, @Nullable ViewGroup parent) {
+            if (parent instanceof MyAbstractList) {
+                this.list = (MyAbstractList) parent;
+            }
         }
 
         @Override

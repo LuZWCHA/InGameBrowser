@@ -5,6 +5,7 @@ import top.nowandfuture.mygui.RootView;
 import top.nowandfuture.mygui.ViewGroup;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -28,10 +29,10 @@ public class ComboBox extends ViewGroup {
 
     public ComboBox(@Nonnull ViewGroup parent) {
         super(parent);
-        setup();
     }
 
-    private void setup() {
+    @Override
+    public void onCreate(RootView rootView, @Nullable ViewGroup parent) {
         label = new MyLabel(getRoot().getFontRenderer(), 0, 0, getWidth(), labelHeight, colorInt(255, 255, 255, 255));
         simpleStringList = new SimpleStringList(getRoot(), this);
         addChild(simpleStringList);
