@@ -27,6 +27,7 @@ public class ScreenEntity extends ClientEntity {
     private Vector3d anchor;
     private int screenWidth, screenHeight;
     private float brightness = .5f;
+    private float scale = 1/ 512f;
 
     @Override
     public void setBoundingBox(AxisAlignedBB bb) {
@@ -239,5 +240,13 @@ public class ScreenEntity extends ClientEntity {
                 ", screenHeight=" + screenHeight +
                 ", brightness=" + brightness +
                 '}';
+    }
+
+    public float getScale() {
+        return scale;
+    }
+
+    public void setScale(float scale) {
+        this.scale = scale;
     }
 }

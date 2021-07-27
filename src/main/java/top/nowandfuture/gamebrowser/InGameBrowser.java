@@ -80,14 +80,6 @@ public class InGameBrowser
         Entity entity = Minecraft.getInstance().getRenderViewEntity();
         if(entity != null) {
             final float pt = worldLastEvent.getPartialTicks();
-            Vector3d vector3d = Minecraft.getInstance().gameRenderer.getActiveRenderInfo().getProjectedView();
-
-            double x = vector3d.getX();
-            double y = vector3d.getY();
-            double z = vector3d.getZ();
-            MatrixStack stack = worldLastEvent.getMatrixStack();
-            IRenderTypeBuffer buffer = IRenderTypeBuffer.getImpl(Tessellator.getInstance().getBuffer());
-            ScreenManager.getInstance().render(stack, buffer, x, y, z, pt);
 
             RayTraceResult rayTraceResult = Minecraft.getInstance().objectMouseOver;
 

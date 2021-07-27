@@ -115,67 +115,6 @@ public class ScreenManager {
         }
     }
 
-    public void render(MatrixStack stack, IRenderTypeBuffer buffer, double x, double y, double z, float pt) {
-        Minecraft mc = Minecraft.getInstance();
-//        System.out.println(y);
-        //minecraft block pos is not aligned to world center
-        double fixedX = 1,
-                /* fix eye height change when sneaking*/
-                fixedY = 0,
-                fixedZ = 0;
-        for (ScreenEntity sc :
-                screenToRender) {
-            int light = mc.getRenderManager().getPackedLight(sc, pt);
-
-            Optional<MyScreen> screen = Optional.ofNullable(sc.getScreen());
-
-            screen.ifPresent(screen1 -> {
-                stack.push();
-                stack.translate(sc.getPosX() - x + fixedX, sc.getPosY() - y + sc.getScreenHeight() - fixedY, sc.getPosZ() - z + fixedZ);
-
-                float yaw = 180 + sc.rotationYaw;
-                Quaternion quaternion = new Quaternion(0, 0, 180, true);
-                stack.rotate(quaternion);
-
-                stack.push();
-                stack.translate(.5, 0, .5);
-                quaternion = new Quaternion(0, yaw, 0, true);
-                stack.rotate(quaternion);
-                stack.translate(-.5, 0, -.5);
-
-                stack.scale(scale, scale, scale);
-
-                RenderSystem.enableDepthTest();
-                //to make a mask to do depth test for other screens
-                stack.push();
-                //render the background behind the views, move a little to avoid Z-Fight
-                stack.translate(0, 0, 1 / 16f);
-                screen1.renderBackground(stack);
-                stack.pop();
-
-                int mx = -1, my = -1;
-
-                if (sc == fsc) {
-                    //render point
-                    mx = (int) loc.x;
-                    my = (int) loc.y;
-                }
-
-                screen1.render(stack, mx, my, pt);
-
-                if (sc == fsc) {
-                    //render point
-                    GUIRenderer.getInstance().fill(stack, mx - 1, my + 1, mx + 1, my - 1, colorInt(255, 0, 0, 255));
-                }
-
-                stack.pop();
-                stack.pop();
-            });
-        }
-
-        screenToRender.clear();
-    }
-
     public void removeRender(ScreenEntity screenEntity) {
         screenToRender.remove(screenEntity);
     }

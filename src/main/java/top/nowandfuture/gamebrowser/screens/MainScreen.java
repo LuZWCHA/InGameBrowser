@@ -37,6 +37,7 @@ public class MainScreen extends MyScreen {
     protected void onDrawBackgroundLayer(MatrixStack stack, int vOffset) {
         // draw the rectangle into depth buffer, color is not important
         AbstractGui.fill(stack, 0, 0, width, height, RenderHelper.colorInt(50, 50, 50, 255));
+
     }
 
     private final ResourceLocation ARROW = new ResourceLocation(InGameBrowser.ID, "textures/gui/arrow_down.png");

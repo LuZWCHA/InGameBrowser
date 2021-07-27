@@ -157,7 +157,7 @@ public class BrowserView extends ViewGroup {
                 .ifPresent(iBrowser -> {
                     ResourceLocation location = iBrowser.getTextureLocation();
                     Optional.ofNullable(location)
-                            .ifPresent(resourceLocation -> RenderHelper.blit1(stack, 0, 0, 0, 0, 0, getWidth(), getHeight(), getHeight(), getWidth(), location));
+                            .ifPresent(resourceLocation -> RenderHelper.blit2(stack, 0, 0, 0, 0, 0, getWidth(), getHeight(), getHeight(), getWidth(), location));
 
                 });
     }
