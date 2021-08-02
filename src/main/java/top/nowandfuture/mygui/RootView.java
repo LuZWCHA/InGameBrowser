@@ -180,7 +180,6 @@ public class RootView implements IMyGui {
     public void onSizeChanged(int oldW, int oldH, int w, int h) {
         topView.layout(this.getWidth(), this.getHeight());
         dialogView.layout(this.getWidth(), this.getHeight());
-
     }
 
     @Override
@@ -213,6 +212,11 @@ public class RootView implements IMyGui {
     @Override
     public int getHeight() {
         return h;
+    }
+
+    public void setSize(int w, int h){
+        this.w = w;
+        this.h = h;
     }
 
     @Override

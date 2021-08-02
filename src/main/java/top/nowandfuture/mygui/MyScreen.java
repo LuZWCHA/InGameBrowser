@@ -5,6 +5,7 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.platform.GlStateManager;
 import joptsimple.internal.Strings;
 import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.nbt.CompoundNBT;
 import top.nowandfuture.mygui.api.IEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.IGuiEventListener;
@@ -246,8 +247,7 @@ public abstract class MyScreen extends Screen {
         int oldW = rootView.getWidth(), oldH = rootView.getHeight();
         rootView.setX(this.guiLeft);
         rootView.setY(this.guiTop);
-        rootView.setWidth(this.width);
-        rootView.setHeight(this.height);
+        rootView.setSize(this.width, this.height);
         rootView.init();
 
         if (isFirstInit) {
@@ -357,5 +357,13 @@ public abstract class MyScreen extends Screen {
 
     public void setTooltip(String tooltip) {
         this.tooltip = tooltip;
+    }
+
+    public void writeNBT(CompoundNBT compoundNBT){
+
+    }
+
+    public CompoundNBT readNBT(CompoundNBT compoundNBT){
+        return new CompoundNBT();
     }
 }

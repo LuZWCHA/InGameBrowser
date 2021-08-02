@@ -10,6 +10,9 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import org.checkerframework.checker.units.qual.C;
 import top.nowandfuture.mygui.MyScreen;
 
 import javax.annotation.Nonnull;
@@ -27,19 +30,23 @@ public class ScreenEntity extends ClientEntity {
     private Vector3d anchor;
     private int screenWidth, screenHeight;
     private float brightness = .5f;
-    private float scale = 1/ 512f;
+    private float scale = 1f;
 
     @Override
     public void setBoundingBox(AxisAlignedBB bb) {
-        if (world.isRemote && screen != null) {
-            final double scale = ScreenManager.getInstance().getScale();
-
-            screen.resize(Minecraft.getInstance(),
-                    ((int) ((bb.maxX - bb.minX) / scale)),
-                    ((int) ((bb.maxY - bb.minY) / scale)));
-        }
-
         super.setBoundingBox(bb);
+        resizeScreen();
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public void resizeScreen(){
+        AxisAlignedBB bb = getBoundingBox();
+        if (world.isRemote() && screen != null) {
+            int w = (int) Math.max(bb.getZSize(), bb.getXSize());
+            screen.init(Minecraft.getInstance(),
+                    ((int) (w / ScreenManager.BASE_SCALE * scale)),
+                    ((int) (bb.getYSize() / ScreenManager.BASE_SCALE * scale)));
+        }
     }
 
     @Override
@@ -79,11 +86,6 @@ public class ScreenEntity extends ClientEntity {
 
         this.anchor = start;
         this.setBoundingBox(new AxisAlignedBB(start, end));
-
-        if (screen != null) {
-            final double scale = ScreenManager.getInstance().getScale();
-            screen.resize(Minecraft.getInstance(), (int) (screenWidth / scale), (int) (screenHeight / scale));
-        }
     }
 
     public Vector3d getAnchor() {
@@ -184,6 +186,18 @@ public class ScreenEntity extends ClientEntity {
 
     public void setScreen(@Nonnull MyScreen screen) {
         this.screen = screen;
+        updateSizeByScreen();
+    }
+
+    public void setEmptyScreen(){
+        this.screen = null;
+    }
+
+    private void updateSizeByScreen(){
+        if(screen != null) {
+            this.screenWidth = (int) (screen.width * ScreenManager.BASE_SCALE / scale);
+            this.screenHeight = (int) (screen.height * ScreenManager.BASE_SCALE / scale);
+        }
     }
 
     public void loseFocus() {
@@ -200,7 +214,7 @@ public class ScreenEntity extends ClientEntity {
         return screenWidth;
     }
 
-    public void setScreenWidth(int screenWidth) {
+    private void setScreenWidth(int screenWidth) {
         this.screenWidth = screenWidth;
     }
 
@@ -208,8 +222,19 @@ public class ScreenEntity extends ClientEntity {
         return screenHeight;
     }
 
-    public void setScreenHeight(int screenHeight) {
+    private void setScreenHeight(int screenHeight) {
         this.screenHeight = screenHeight;
+    }
+
+    @Override
+    public void onRemovedFromWorld() {
+        super.onRemovedFromWorld();
+
+    }
+
+    @Override
+    public void remove() {
+        super.remove();
     }
 
     @Override
@@ -247,6 +272,10 @@ public class ScreenEntity extends ClientEntity {
     }
 
     public void setScale(float scale) {
-        this.scale = scale;
+        if(this.scale != scale) {
+            this.scale = scale;
+            Optional.ofNullable(screen)
+                    .ifPresent(screen -> resizeScreen());
+        }
     }
 }

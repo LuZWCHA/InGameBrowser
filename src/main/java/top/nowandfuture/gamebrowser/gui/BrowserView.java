@@ -5,6 +5,7 @@ import joptsimple.internal.Strings;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.util.ResourceLocation;
 import net.montoyo.mcef.api.*;
+import org.jline.utils.Log;
 import top.nowandfuture.gamebrowser.utils.RenderHelper;
 import top.nowandfuture.mygui.RootView;
 import top.nowandfuture.mygui.ViewGroup;
@@ -130,12 +131,6 @@ public class BrowserView extends ViewGroup {
 
     @Override
     protected void onLayout(int parentWidth, int parentHeight) {
-        if (flowParentWidth) {
-            setWidthWithoutLayout(parentWidth);
-        }
-        if (flowParentHeight) {
-            setHeightWithoutLayout(parentHeight);
-        }
         Optional.ofNullable(browser)
                 .ifPresent((IBrowser iBrowser) -> {
                     if (iBrowser.isActivate() && getWidth() > 0 && getHeight() > 0) {
@@ -147,6 +142,7 @@ public class BrowserView extends ViewGroup {
     @Override
     public void destroy() {
         super.destroy();
+        Log.info("close browser !");
         Optional.ofNullable(browser)
                 .ifPresent(IBrowser::close);
     }
@@ -157,7 +153,7 @@ public class BrowserView extends ViewGroup {
                 .ifPresent(iBrowser -> {
                     ResourceLocation location = iBrowser.getTextureLocation();
                     Optional.ofNullable(location)
-                            .ifPresent(resourceLocation -> RenderHelper.blit2(stack, 0, 0, 0, 0, 0, getWidth(), getHeight(), getHeight(), getWidth(), location));
+                            .ifPresent(resourceLocation -> RenderHelper.blit2(stack, 0, 0, 0, 0, 0f, getWidth(), getHeight(), getHeight(), getWidth(), location));
 
                 });
     }
@@ -194,7 +190,7 @@ public class BrowserView extends ViewGroup {
 
     public String getUrlLoaded() {
         return Optional.ofNullable(browser)
-                .map(IBrowser::getURL).orElse(Strings.EMPTY);
+                .map(IBrowser::getURL).orElse(home);
     }
 
     @Override

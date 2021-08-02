@@ -14,11 +14,9 @@ import top.nowandfuture.mygui.MyScreen;
 import javax.annotation.Nonnull;
 import java.util.Optional;
 
-import static top.nowandfuture.gamebrowser.utils.RenderHelper.QUAD_TEX;
 import static top.nowandfuture.gamebrowser.utils.RenderHelper.colorInt;
 
 public class ScreenEntityRenderer extends EntityRenderer<ScreenEntity> {
-
 
     protected ScreenEntityRenderer(EntityRendererManager renderManager) {
         super(renderManager);
@@ -41,14 +39,12 @@ public class ScreenEntityRenderer extends EntityRenderer<ScreenEntity> {
         InWorldRenderer.typeBuffer = bufferIn;
 
         Optional<MyScreen> screen = Optional.ofNullable(sc.getScreen());
-        float scale = sc.getScale();
+        float scale = ScreenManager.BASE_SCALE / sc.getScale();
 
         screen.ifPresent(screen1 -> {
             stack.push();
             stack.translate(0,  sc.getScreenHeight(), 0);
             float yaw = 180 - sc.rotationYaw;
-//            Quaternion quaternion = new Quaternion(0, 0, 180, true);
-//            stack.rotate(quaternion);
 
             stack.push();
             stack.translate(.5, 0, .5);
@@ -68,7 +64,7 @@ public class ScreenEntityRenderer extends EntityRenderer<ScreenEntity> {
 
             int mx = -1, my = -1;
 
-            if (sc == ScreenManager.getInstance().getFsc()) {
+            if (sc == ScreenManager.getInstance().getFocusedScreen()) {
                 //render point
                 mx = (int) ScreenManager.getInstance().getLoc().x;
                 my = (int) ScreenManager.getInstance().getLoc().y;
@@ -76,7 +72,7 @@ public class ScreenEntityRenderer extends EntityRenderer<ScreenEntity> {
 
             screen1.render(stack, mx, my, partialTicks);
 
-            if (sc == ScreenManager.getInstance().getFsc()) {
+            if (sc == ScreenManager.getInstance().getFocusedScreen()) {
                 //render point
                 GUIRenderer.getInstance().fill(stack, mx - 1, my + 1, mx + 1, my - 1, colorInt(255, 0, 0, 255));
             }

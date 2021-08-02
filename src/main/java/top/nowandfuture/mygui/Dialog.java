@@ -12,6 +12,8 @@ public class Dialog {
     Dialog(ViewGroup content) {
         inCenter = false;
         this.frameLayout = new TopView(content.getRoot());
+        frameLayout.wrapContentWidth = true;
+        frameLayout.wrapContentHeight = true;
         this.content = content;
         frameLayout.addChild(content);
     }
@@ -36,6 +38,7 @@ public class Dialog {
         y += (h - frameLayout.getHeight()) / 2;
         frameLayout.setX(x);
         frameLayout.setY(y);
+
         inCenter = true;
         return this;
     }
@@ -61,7 +64,13 @@ public class Dialog {
     }
 
     protected void layout(int sw, int sh){
+
         if(isShowing()) {
+
+            if(isInCenter()){
+                setCenter();
+            }
+
             frameLayout.layout(sw, sh);
         }
     }

@@ -1,23 +1,17 @@
 package top.nowandfuture.gamebrowser;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.*;
 import net.minecraft.client.settings.KeyBinding;
-import net.minecraft.client.util.InputMappings;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.EntityRayTraceResult;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.vector.Vector2f;
 import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.math.vector.Vector3f;
-import net.minecraft.util.math.vector.Vector4f;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.common.Mod;
@@ -31,7 +25,7 @@ import org.lwjgl.glfw.GLFW;
 import top.nowandfuture.gamebrowser.setup.ClientProxy;
 import top.nowandfuture.gamebrowser.setup.CommonProxy;
 import top.nowandfuture.gamebrowser.setup.IProxy;
-import top.nowandfuture.gamebrowser.utils.RenderHelper;
+import top.nowandfuture.gamebrowser.setup.KeyHandler;
 import top.nowandfuture.gamebrowser.utils.Tools;
 
 import static top.nowandfuture.gamebrowser.InGameBrowser.ID;
@@ -45,8 +39,7 @@ public class InGameBrowser
     public static IProxy proxy;
 
     public final static String ID = "gamebrowser";
-
-    private static KeyBinding keyBinding = new KeyBinding("summon a entity", GLFW.GLFW_KEY_I, "top.nowandfuture.screen");
+    private final KeyHandler keyHandler;
 
     public InGameBrowser() {
         // Register the setup method for modloading
@@ -57,18 +50,13 @@ public class InGameBrowser
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
         proxy = DistExecutor.safeRunForDist(() -> ClientProxy::new, () -> CommonProxy::new);
+        keyHandler = new KeyHandler();
     }
 
     @SubscribeEvent
     public void onClientTick(TickEvent.ClientTickEvent tickEvent){
         if(tickEvent.phase == TickEvent.Phase.START) {
-            ClientWorld world = Minecraft.getInstance().world;
-            Entity entity = Minecraft.getInstance().getRenderViewEntity();
-            if (keyBinding.isPressed()) {
-                if (world != null && entity != null && !entity.isSpectator()) {
-                    ScreenManager.getInstance().create(1, 1, world, entity, 1);
-                }
-            }
+            keyHandler.onClientTick(tickEvent);
 
             ScreenManager.getInstance().updateMouseMoved();
             ScreenManager.getInstance().tick();
@@ -80,6 +68,9 @@ public class InGameBrowser
         Entity entity = Minecraft.getInstance().getRenderViewEntity();
         if(entity != null) {
             final float pt = worldLastEvent.getPartialTicks();
+
+            if(!Minecraft.getInstance().gameRenderer.getActiveRenderInfo().isThirdPerson())
+                ScreenManager.getInstance().renderFollowingScreen(worldLastEvent.getMatrixStack(), pt);
 
             RayTraceResult rayTraceResult = Minecraft.getInstance().objectMouseOver;
 
@@ -105,15 +96,15 @@ public class InGameBrowser
                     localX = ((ScreenEntity) insEnt).getScreenWidth() + localX;
                     localY = ((ScreenEntity) insEnt).getScreenHeight() - localY;
 
-                    ScreenManager.getInstance().setFsc((ScreenEntity) insEnt);
-                    ScreenManager.getInstance().setLoc(new Vector2f((float) localX, (float) localY));
+                    ScreenManager.getInstance().setFocusedScreen((ScreenEntity) insEnt);
+                    ScreenManager.getInstance().setLoc(new Vector2f((float) localX, (float) localY), ((ScreenEntity) insEnt).getScale());
 
                     return;
                 }
 
             }
 
-            ScreenManager.getInstance().setFsc((ScreenEntity) null);
+            ScreenManager.getInstance().setFocusedScreen((ScreenEntity) null);
 
         }
     }

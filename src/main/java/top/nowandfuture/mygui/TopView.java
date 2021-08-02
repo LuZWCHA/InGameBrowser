@@ -9,6 +9,12 @@ class TopView extends FrameLayout {
         super(rootView, null);
     }
 
+    // TODO: 2021/8/2 wrap is not the right usage, I do this is to make dialog not to layout
+    @Override
+    protected void onLayoutForSelf(int suggestWidth, int suggestHeight) {
+        super.onLayoutForSelf(wrapContentWidth ? this.getWidth(): suggestWidth, wrapContentHeight ? this.getHeight(): suggestHeight);
+    }
+
     @Override
     protected void onDraw(MatrixStack stack, int mouseX, int mouseY, float partialTicks) {
 

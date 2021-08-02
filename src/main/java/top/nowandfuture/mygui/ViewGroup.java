@@ -622,12 +622,15 @@ public abstract class ViewGroup implements IMyGui, ISizeChanged {
             }
         }
         flag = visible && onPressed(mouseX, mouseY, state);
-        if (flag && this != root.getFocusedView()) {
+        if(flag){
             lastPressBtn = state;
-            root.setFocusedView(this);
+            if(root.getFocusedView() != this) {
+                root.setFocusedView(this);
+            }
         }else{
             lastPressBtn = -1;
         }
+
         return flag;
     }
 

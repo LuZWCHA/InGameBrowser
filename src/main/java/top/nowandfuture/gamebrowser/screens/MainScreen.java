@@ -3,11 +3,11 @@ package top.nowandfuture.gamebrowser.screens;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.AbstractGui;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.vector.Quaternion;
 import net.minecraft.util.math.vector.Vector3f;
 import net.minecraft.util.text.ITextComponent;
-import net.minecraftforge.fml.client.gui.GuiUtils;
 import net.montoyo.mcef.api.IBrowser;
 import net.montoyo.mcef.api.IDisplayHandler;
 import org.lwjgl.glfw.GLFW;
@@ -28,9 +28,25 @@ public class MainScreen extends MyScreen {
     private BrowserView browserView;
     protected String id;
 
+    protected final static String URL = "browser_url";
+
     protected MainScreen(String id, ITextComponent titleIn) {
         super(titleIn);
         this.id = id;
+    }
+
+    @Override
+    public void writeNBT(CompoundNBT compoundNBT) {
+        compoundNBT.putString(URL, browserView.getUrlLoaded());
+    }
+
+    @Override
+    public CompoundNBT readNBT(CompoundNBT compoundNBT) {
+        String url = compoundNBT.getString(URL);
+        if(browserView.isActivate()){
+            browserView.setUrlToLoad(url);
+        }
+        return compoundNBT;
     }
 
     @Override
@@ -44,34 +60,35 @@ public class MainScreen extends MyScreen {
     @Override
     public void render(@Nonnull MatrixStack stack, int mouseX, int mouseY, float partialTicks) {
         super.render(stack, mouseX, mouseY, partialTicks);
-        if(getRootView().getFocusedView() != null) {
+        if(getRootView().getFocusedView() != null && RootView.isInside(getRootView(), mouseX, mouseY)) {
+            int arrowSize = 64;
             if (left) {
                 stack.push();
                 Quaternion quaternion = new Quaternion(new Vector3f(0, 0, 1), 90, true);
-                stack.translate(0, (height - 64) / 2f, 0);
+                stack.translate(0, (height - arrowSize) / 2f, 0);
                 stack.rotate(quaternion);
-                RenderHelper.blit1(stack, 0, 0, 0, 0, 0, 64, 64, 64, 64, ARROW);
+                RenderHelper.blit1(stack, 0, 0, 0, 0, 0, arrowSize, arrowSize, arrowSize, arrowSize, ARROW);
                 stack.pop();
             } else if (right) {
                 stack.push();
                 Quaternion quaternion = new Quaternion(new Vector3f(0, 0, 1), -90, true);
-                stack.translate(width, (height - 64) / 2f + 64, 0);
+                stack.translate(width, (height - arrowSize) / 2f + arrowSize, 0);
                 stack.rotate(quaternion);
-                RenderHelper.blit1(stack, 0, 0, 0, 0, 0, 64, 64, 64, 64, ARROW);
+                RenderHelper.blit1(stack, 0, 0, 0, 0, 0, arrowSize, arrowSize, arrowSize, arrowSize, ARROW);
                 stack.pop();
             }
 
             if (top) {
                 stack.push();
                 Quaternion quaternion = new Quaternion(new Vector3f(0, 0, 1), 180, true);
-                stack.translate((width - 64) / 2f + 64, 0, 0);
+                stack.translate((width - arrowSize) / 2f + arrowSize, 0, 0);
                 stack.rotate(quaternion);
-                RenderHelper.blit1(stack, 0, 0, 0, 0, 0, 64, 64, 64, 64, ARROW);
+                RenderHelper.blit1(stack, 0, 0, 0, 0, 0, arrowSize, arrowSize, arrowSize, arrowSize, ARROW);
                 stack.pop();
             } else if (bottom) {
                 stack.push();
-                stack.translate((width - 64) / 2f, height, 0);
-                RenderHelper.blit1(stack, 0, 0, 0, 0, 0, 64, 64, 64, 64, ARROW);
+                stack.translate((width - arrowSize) / 2f, height, 0);
+                RenderHelper.blit1(stack, 0, 0, 0, 0, 0, arrowSize, arrowSize, arrowSize, arrowSize, ARROW);
                 stack.pop();
             }
         }
@@ -89,28 +106,34 @@ public class MainScreen extends MyScreen {
         //Tile View
         //titles
         TitleView titleView = new TitleView(contentLayout);
+
+        titleView.setScreen(this);//to set the entity's scale and brightness
+
         titleView.setHeight(24);
         titleView.setFlowParentWidth(true);
-        titleView.setActionListener(new View.ActionListener() {
+        titleView.setCloseListener(new View.ActionListener() {
             @Override
             public void onClicked(View v, int mouseX, int mouseY, int btn) {
+                closeScreen();
                 ScreenManager.getInstance().removeBy(MainScreen.this);
-                MainScreen.this.closeScreen();
-
             }
         });
 
-        //Search Box
+
+        //=======================================================================================================================================================
+        // Search Box and BrowserView
+        //=======================================================================================================================================================
+
         LinearLayout.LinearLayoutParameter searchParas = new LinearLayout.LinearLayoutParameter(false, true, false);
-        LinearLayout searchLine = new LinearLayout(contentLayout, searchParas);
-        searchLine.pushLayoutParameter(searchParas);
+        LinearLayout searchLayout = new LinearLayout(contentLayout, searchParas);
+        searchLayout.pushLayoutParameter(searchParas);
 
-        searchLine.setFlowParentWidth(true);
-        searchLine.setHeight(24);
-        searchLine.setPadTop(2);
-        searchLine.setPadBottom(2);
+        searchLayout.setFlowParentWidth(true);
+        searchLayout.setHeight(24);
+        searchLayout.setPadTop(2);
+        searchLayout.setPadBottom(2);
 
-        Button back = new Button(searchLine);
+        Button back = new Button(searchLayout);
         back.setFlowParentHeight(true);
         back.setWidth(26);
         back.setText("<");
@@ -124,7 +147,7 @@ public class MainScreen extends MyScreen {
             }
         });
 
-        Button forward = new Button(searchLine);
+        Button forward = new Button(searchLayout);
         forward.setFlowParentHeight(true);
         forward.setWidth(26);
         forward.setText(">");
@@ -139,7 +162,7 @@ public class MainScreen extends MyScreen {
         });
 
         //contents
-        EditorView editorView = new EditorView(searchLine);
+        EditorView editorView = new EditorView(searchLayout);
         editorView.setDrawShadow(false);
         editorView.setDrawDecoration(false);
         editorView.setPadLeft(6);
@@ -151,7 +174,7 @@ public class MainScreen extends MyScreen {
         editorView.setFlowParentWidth(true);
 
         //search button
-        Button searchBtn = new Button(searchLine);
+        Button searchBtn = new Button(searchLayout);
         searchBtn.setFlowParentHeight(true);
         searchBtn.setWidth(60);
         searchBtn.setText("search");
@@ -192,6 +215,7 @@ public class MainScreen extends MyScreen {
                 post(new InWorldTextTipEvent(value, 1000, RootView.AbstractDataTipEvent.Position.LEFT_BOTTOM));
             }
         });
+        //=======================================================================================================================================================
 
         contentLayout.setClipping(true);
     }
@@ -246,13 +270,13 @@ public class MainScreen extends MyScreen {
         }
     }
 
-    public static MainScreen create(String id, double width, double height) {
+    public static MainScreen create(String id, double width, double height, float scale) {
 
         MainScreen mainScreen = new MainScreen(id, ITextComponent.getTextComponentOrEmpty(id));
-        double scale = ScreenManager.getInstance().getScale();
+        double realScale = ScreenManager.BASE_SCALE * scale;
         mainScreen.setGuiLeft(0);
         mainScreen.setGuiTop(0);
-        mainScreen.resize(Minecraft.getInstance(), (int) (width / scale), (int) (height / scale));
+        mainScreen.resize(Minecraft.getInstance(), (int) (width / realScale), (int) (height / realScale));
 
         return mainScreen;
     }

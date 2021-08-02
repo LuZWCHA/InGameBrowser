@@ -148,18 +148,10 @@ public class RenderHelper {
 
     private static void innerBlit(Matrix4f matrix, int x1, int x2, int y1, int y2, int blitOffset, float minU, float maxU, float minV, float maxV, ResourceLocation id) {
 
-//        Minecraft.getInstance().getRenderTypeBuffers().getFixedBuilder().getBuilder()
         IRenderTypeBuffer.Impl renderTypeBuffer = Minecraft.getInstance().getRenderTypeBuffers().getBufferSource();
 
-//        BufferBuilder builder = Tessellator.getInstance().getBuffer();
-//        net.minecraft.client.renderer.RenderHelper.disableStandardItemLighting();
         IVertexBuilder builder = renderTypeBuffer.getBuffer(RenderType.getText(id));
-//        RenderSystem.enableDepthTest();
-//        RenderSystem.depthMask(false);
-//        RenderSystem.disableAlphaTest();
-//        RenderSystem.enableTexture();
-//        builder.begin(7, DefaultVertexFormats.POSITION_TEX);
-//        IVertexBuilder builder = typeBuffer.getBuffer(QUAD_TEX);
+
         //   public static final VertexFormat POSITION_COLOR_TEX_LIGHTMAP = new VertexFormat(ImmutableList.<VertexFormatElement>builder().add(POSITION_3F).add(COLOR_4UB).add(TEX_2F).add(TEX_2SB).build());
         builder.pos(matrix, (float) x1, (float) y2, (float) blitOffset).color(255, 255, 255, 255).tex(minU, maxV).lightmap(light).endVertex();
         builder.pos(matrix, (float) x2, (float) y2, (float) blitOffset).color(255, 255, 255, 255).tex(maxU, maxV).lightmap(light).endVertex();
@@ -167,35 +159,24 @@ public class RenderHelper {
         builder.pos(matrix, (float) x1, (float) y1, (float) blitOffset).color(255, 255, 255, 255).tex(minU, minV).lightmap(light).endVertex();
 
         RenderSystem.enableDepthTest();
-//        RenderSystem.depthMask(false);
         renderTypeBuffer.finish();
-//        RenderSystem.depthMask(true);
-
-
     }
 
     private static void innerBlit(Matrix4f matrix, int x1, int x2, int y1, int y2, int blitOffset, float minU, float maxU, float minV, float maxV) {
 
         IRenderTypeBuffer.Impl renderTypeBuffer = Minecraft.getInstance().getRenderTypeBuffers().getBufferSource();
 
-//        BufferBuilder builder = Tessellator.getInstance().getBuffer();
-//        net.minecraft.client.renderer.RenderHelper.disableStandardItemLighting();
+
         IVertexBuilder builder = renderTypeBuffer.getBuffer(QUAD_TEX);
         RenderSystem.enableDepthTest();
         RenderSystem.depthMask(false);
-//        RenderSystem.disableAlphaTest();
-//        RenderSystem.enableTexture();
-//        builder.begin(7, DefaultVertexFormats.POSITION_TEX);
-//        IVertexBuilder builder = typeBuffer.getBuffer(QUAD_TEX);
+
         builder.pos(matrix, (float) x1, (float) y2, (float) blitOffset).tex(minU, maxV).endVertex();
         builder.pos(matrix, (float) x2, (float) y2, (float) blitOffset).tex(maxU, maxV).endVertex();
         builder.pos(matrix, (float) x2, (float) y1, (float) blitOffset).tex(maxU, minV).endVertex();
         builder.pos(matrix, (float) x1, (float) y1, (float) blitOffset).tex(minU, minV).endVertex();
-//        RenderSystem.enableAlphaTest();
         renderTypeBuffer.finish();
         RenderSystem.depthMask(true);
-//        net.minecraft.client.renderer.RenderHelper.enableStandardItemLighting();
-//        Tessellator.getInstance().draw();
 
     }
 
@@ -228,11 +209,6 @@ public class RenderHelper {
         builder.pos(matrix, (float) x2, (float) y2, (float) blitOffset).color(255, 255, 255, 255).tex(maxU, maxV).overlay(OverlayTexture.NO_OVERLAY).lightmap(light).normal(normalMatrix, (float)nx, (float)ny, (float)nz).endVertex();
         builder.pos(matrix, (float) x2, (float) y1, (float) blitOffset).color(255, 255, 255, 255).tex(maxU, minV).overlay(OverlayTexture.NO_OVERLAY).lightmap(light).normal(normalMatrix, (float)nx, (float)ny, (float)nz).endVertex();
         builder.pos(matrix, (float) x1, (float) y1, (float) blitOffset).color(255, 255, 255, 255).tex(minU, minV).overlay(OverlayTexture.NO_OVERLAY).lightmap(light).normal(normalMatrix, (float)nx, (float)ny, (float)nz).endVertex();
-
-//        RenderSystem.enableDepthTest();
-//        RenderSystem.depthMask(false);
-//        renderTypeBuffer.finish();
-//        RenderSystem.depthMask(true);
     }
 
 
@@ -334,45 +310,5 @@ public class RenderHelper {
 
     private void renderVertex(Matrix4f matrix4f, Matrix3f matrix3f, IVertexBuilder builder, float x, float y, float u, float v, float z, int nx, int ny, int nz, int light) {
         builder.pos(matrix4f, x, y, z).color(255, 255, 255, 255).tex(u, v).overlay(OverlayTexture.NO_OVERLAY).lightmap(light).normal(matrix3f, (float)nx, (float)ny, (float)nz).endVertex();
-    }
-
-    public static class DynRenderState extends RenderState {
-
-        public DynRenderState(String nameIn, Runnable setupTaskIn, Runnable clearTaskIn) {
-            super(nameIn, setupTaskIn, clearTaskIn);
-        }
-
-//        public static RenderType getRT(String name, int id) {
-//            return RenderType.makeType(name, DefaultVertexFormats.POSITION_TEX, GL20.GL_QUADS, 256,
-//                    RenderType.State.getBuilder()
-//                            .texture(TextureState.BLOCK_SHEET)
-//                            .texturing(new DynTextureState(id))
-////                            .depthTest(RenderState.DEPTH_LEQUAL)
-////                            .writeMask(RenderState.COLOR_WRITE)
-//                            .build(false));
-//
-//        }
-
-        public static class DynTextureState extends TexturingState {
-            private int id;
-
-            public DynTextureState(int tex_id) {
-                super("dyn", new Runnable() {
-                    @Override
-                    public void run() {
-                        RenderSystem.enableTexture();
-                        RenderSystem.bindTexture(tex_id);
-                    }
-                }, new Runnable() {
-                    @Override
-                    public void run() {
-                        RenderSystem.bindTexture(0);
-                        RenderSystem.disableTexture();
-                    }
-                });
-
-                this.id = tex_id;
-            }
-        }
     }
 }

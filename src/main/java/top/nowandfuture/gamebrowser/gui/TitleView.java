@@ -1,26 +1,30 @@
 package top.nowandfuture.gamebrowser.gui;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.util.ResourceLocation;
-import org.lwjgl.system.CallbackI;
+import net.minecraft.util.math.vector.Quaternion;
 import top.nowandfuture.gamebrowser.InGameBrowser;
+import top.nowandfuture.gamebrowser.ScreenManager;
 import top.nowandfuture.gamebrowser.utils.RenderHelper;
 import top.nowandfuture.mygui.*;
+import top.nowandfuture.mygui.api.IAction;
+import top.nowandfuture.mygui.api.IMyGui;
 import top.nowandfuture.mygui.components.Button;
 import top.nowandfuture.mygui.components.ImageView;
 import top.nowandfuture.mygui.components.TextView;
 import top.nowandfuture.mygui.layouts.FrameLayout;
-import top.nowandfuture.mygui.layouts.LinearLayout;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.function.Consumer;
 
 public class TitleView extends FrameLayout {
     private TextView titleTv;
     private Button closeBtn;
     private ImageView focusImv;
-    private Button brightnessBtn;
+    private Button settingBtn;
     private View.ActionListener actionListener;
+
+    private MyScreen screen;
 
     private final ResourceLocation NO_FOCUSED_LOCATION =
             new ResourceLocation(InGameBrowser.ID, "textures/gui/no_focused.png");
@@ -29,29 +33,27 @@ public class TitleView extends FrameLayout {
 
     public TitleView(@Nonnull RootView rootView) {
         super(rootView);
-        init();
     }
 
     public TitleView(@Nonnull RootView rootView, ViewGroup parent, @Nonnull FrameLayoutParameter layoutParameter) {
         super(rootView, parent, layoutParameter);
-        init();
     }
 
     public TitleView(@Nonnull RootView rootView, ViewGroup parent) {
         super(rootView, parent);
-        init();
     }
 
     public TitleView(@Nonnull ViewGroup parent) {
         super(parent);
-        init();
     }
 
-    private void init() {
+    @Override
+    protected void onCreate(RootView rootView, @Nullable ViewGroup parent) {
+        super.onCreate(rootView, parent);
         titleTv = new TextView(this);
         closeBtn = new Button(this);
         focusImv = new InWorldImageView(this);
-        brightnessBtn = new Button(this);
+        settingBtn = new Button(this);
         setBackgroundColor(new Color(71, 71, 71));
     }
 
@@ -68,19 +70,32 @@ public class TitleView extends FrameLayout {
                 onClose(v, mouseX, mouseY, btn);
             }
         });
-
-        brightnessBtn.setVanillaStyle(false);
-        brightnessBtn.setText("B");
+        ScreenManager screenManager = ScreenManager.getInstance();
+        settingBtn.setVanillaStyle(false);
+        settingBtn.setText("S");
         closeBtn.setButtonColor(new Color(255, 0, 0));
-        brightnessBtn.setButtonHoverColor(new Color(220, 20, 20));
-        brightnessBtn.setActionListener(new View.ActionListener() {
+        settingBtn.setButtonHoverColor(new Color(20, 20, 20));
+        settingBtn.setActionListener(new View.ActionListener() {
             @Override
             public void onClicked(View v, int mouseX, int mouseY, int btn) {
-                BrightnessView view = new BrightnessView(getRoot());
-                view.setHeight(60);
+                SettingView view = new SettingView(getRoot());
+                view.setHeight(120);
                 view.setWidth(240);
-                view.setBrightness(RenderHelper.decodeCombineLight(RenderHelper.light)[1]);
-                view.setChangingListener(aFloat -> RenderHelper.light = RenderHelper.getCombineLight(15, 0, (int)(0.15 * aFloat)));
+                screenManager.findBy(screen).ifPresent(screenEntity -> {
+                    view.setScale((int) (screenEntity.getScale() * 20));
+                    //progress is from 0-100, and means scaling from 0% to 500%
+                    view.setScaChangedListener(new Consumer<Float>() {
+                        @Override
+                        public void accept(Float aFloat) {
+                            float sc = aFloat * .05f;
+                            screenEntity.setScale(sc);
+                        }
+                    });
+                    view.setBrightness(RenderHelper.decodeCombineLight(RenderHelper.light)[1]);
+                    view.setBrChangingListener(aFloat -> RenderHelper.light = RenderHelper.getCombineLight(15, 0, (int)(0.15 * aFloat)));
+                });
+
+
                 Dialog dialog = getRoot().createDialogBuilder(view)
                         .hideDialog()
                         .build();
@@ -95,16 +110,22 @@ public class TitleView extends FrameLayout {
         titleTv.setPadTop(2);
         titleTv.setPadBottom(2);
 
-//        titleTv.setFlowParentHeight(true);
-//        closeBtn.setFlowParentHeight(true);
-//        focusImv.setFlowParentHeight(true);
         focusImv.setImageLocation(NO_FOCUSED_LOCATION);
+        focusImv.setClickable(true);
         focusImv.setPadBottom(4);
         focusImv.setPadTop(4);
         focusImv.setPadLeft(4);
         focusImv.setPadRight(4);
-
-
+        focusImv.setActionClick(new IAction.ActionClick() {
+            @Override
+            public void clicked(IMyGui gui, int button) {
+                screenManager.findBy(screen)
+                        .ifPresent(screenEntity -> {
+                            screenManager.setFollowScreen(screenEntity);
+                            screenManager.setRotation4FollowingScreen(new Quaternion(0, 30, 0, true));
+                        });
+            }
+        });
     }
 
     private void onClose(View v, int mouseX, int mouseY, int btn) {
@@ -131,24 +152,32 @@ public class TitleView extends FrameLayout {
         int startW = titleTv.getWidth();
 
         focusImv.setX(startW);
-        brightnessBtn.setX(startW + w);
+        settingBtn.setX(startW + w);
         closeBtn.setX(startW + 2 * w);
 
         focusImv.setWidthWithoutLayout(w);
         focusImv.setHeightWithoutLayout(w);
         closeBtn.setWidthWithoutLayout(w);
         closeBtn.setHeightWithoutLayout(w);
-        brightnessBtn.setWidthWithoutLayout(w);
-        brightnessBtn.setHeightWithoutLayout(w);
+        settingBtn.setWidthWithoutLayout(w);
+        settingBtn.setHeightWithoutLayout(w);
 
         super.onChildrenLayout();
     }
 
-    public void setActionListener(View.ActionListener actionListener) {
+    public void setCloseListener(View.ActionListener actionListener) {
         this.actionListener = actionListener;
     }
 
     public void setFocus(boolean focus) {
         focusImv.setImageLocation(focus ? FOCUSED_LOCATION : NO_FOCUSED_LOCATION);
+    }
+
+    public MyScreen getScreen() {
+        return screen;
+    }
+
+    public void setScreen(MyScreen screen) {
+        this.screen = screen;
     }
 }
