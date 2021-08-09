@@ -2,6 +2,8 @@ package top.nowandfuture.gamebrowser.setup;
 
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.montoyo.mcef.api.API;
+import net.montoyo.mcef.api.MCEFApi;
 import top.nowandfuture.gamebrowser.ScreenEntity;
 import top.nowandfuture.gamebrowser.ScreenManager;
 

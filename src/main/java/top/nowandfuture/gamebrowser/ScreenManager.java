@@ -6,6 +6,7 @@ import net.minecraft.client.gui.IGuiEventListener;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Quaternion;
@@ -101,7 +102,7 @@ public class ScreenManager {
 
     public void tick() {
         for (ScreenEntity sc :
-                screenToRender) {
+                screenEntities) {
             MyScreen screen = sc.getScreen();
             screen.tick();
         }
@@ -112,17 +113,30 @@ public class ScreenManager {
         }
     }
 
+    @Deprecated
     public void removeRender(ScreenEntity screenEntity) {
         screenToRender.remove(screenEntity);
     }
 
+    @Deprecated
     public void addRender(ScreenEntity screenEntity) {
         if (screenEntity.isAlive())
             screenToRender.add(screenEntity);
     }
 
+    @Deprecated
     public void removeDeadRender() {
         screenToRender.removeIf(screenEntity -> !screenEntity.isAlive());
+    }
+
+    public void remove(ScreenEntity screenEntity){
+        screenEntities.remove(screenEntity);
+        ScreenEntityRenderer.removeUnfreezeEntity(screenEntity);
+    }
+
+    public void removeAll(){
+        screenEntities.clear();
+        ScreenEntityRenderer.clearUnfreezeMap();
     }
 
     public void removeBy(@NotNull MyScreen screen) {
@@ -157,10 +171,17 @@ public class ScreenManager {
         BlockPos blockPos = new BlockPos.Mutable(player.getPosX(), player.getPosY() + player.getEyeHeight(), player.getPosZ());
         Direction direction = Direction.getFacingFromVector(look.getX(), look.getY(), look.getZ());
         blockPos = blockPos.offset(direction, offset);
+        float yaw = direction.getOpposite().getHorizontalAngle();
+        return create(world, yaw, blockPos, width, height);
+    }
+
+    public ScreenEntity create(ClientWorld world, float rotationYaw, BlockPos blockPos, double width, double height){
         ScreenEntity screenEntity = new ScreenEntity(world);
 
-        screenEntity.rotationYaw = direction.getOpposite().getHorizontalAngle();
-        screenEntity.setScreen(MainScreen.create(screenEntity.getUniqueID().toString(), width, height, screenEntity.getScale()));
+        screenEntity.rotationYaw = rotationYaw;
+        MyScreen screen = MainScreen.create(screenEntity.getUniqueID().toString(), width, height, screenEntity.getScale());
+        screenEntity.setScreen(screen);
+
         screenEntity.setPosition(blockPos.getX(), blockPos.getY(), blockPos.getZ());
 
         world.addEntity(screenEntity.getEntityId(), screenEntity);
@@ -183,6 +204,16 @@ public class ScreenManager {
         screenEntities.add(screenEntity);
         return screenEntity;
     }
+
+    public ScreenEntity createFromNBT(CompoundNBT nbt, ClientWorld world){
+        ScreenEntity screenEntity = new ScreenEntity(world);
+        screenEntity.read(nbt);
+
+        world.addEntity(screenEntity.getEntityId(), screenEntity);
+        screenEntities.add(screenEntity);
+        return screenEntity;
+    }
+
 
     private void setFollowScreen(@Nullable MyScreen followScreen) {
         this.followScreen = followScreen;

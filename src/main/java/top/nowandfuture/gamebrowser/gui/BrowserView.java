@@ -1,11 +1,11 @@
 package top.nowandfuture.gamebrowser.gui;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
-import joptsimple.internal.Strings;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.util.ResourceLocation;
 import net.montoyo.mcef.api.*;
 import org.jline.utils.Log;
+import top.nowandfuture.gamebrowser.InGameBrowser;
 import top.nowandfuture.gamebrowser.utils.RenderHelper;
 import top.nowandfuture.mygui.RootView;
 import top.nowandfuture.mygui.ViewGroup;
@@ -19,10 +19,13 @@ public class BrowserView extends ViewGroup {
     private String browserRenderId;
     private IBrowser browser;
     private String urlToLoad;
-    private String home = "http://baidu.com";
+    // TODO: 2021/8/8 create the html home page for this mod
+    private String home;
 
     private IDisplayHandler displayHandler;
     private IFocusListener focusListener;
+
+    private int outsideLight = RenderHelper.SKY_LIGHT;
 
     public void setFocusListener(IFocusListener focusListener) {
         this.focusListener = focusListener;
@@ -36,6 +39,14 @@ public class BrowserView extends ViewGroup {
         this.browserRenderId = browserRenderId;
     }
 
+    public int getOutsideLight() {
+        return outsideLight;
+    }
+
+    public void setOutsideLight(int outsideLight) {
+        this.outsideLight = outsideLight;
+    }
+
     public interface IFocusListener {
         void onFocusChanged(boolean f);
     }
@@ -46,16 +57,19 @@ public class BrowserView extends ViewGroup {
 
     @Override
     public void onCreate(RootView rootView, @Nullable ViewGroup parent) {
+        home = InGameBrowser.getHomePage();
+    }
 
+    public void setUrl(String urlToLoad) {
+        Optional.ofNullable(browser)
+                .ifPresent(iBrowser -> {
+                    if(iBrowser.isActivate())
+                        iBrowser.loadURL(urlToLoad);
+                });
     }
 
     public void setUrlToLoad(String urlToLoad) {
         this.urlToLoad = urlToLoad;
-        Optional.ofNullable(browser)
-                .ifPresent(iBrowser -> {
-                    iBrowser.loadURL(urlToLoad);
-                    BrowserView.this.urlToLoad = null;
-                });
     }
 
     public BrowserView(ViewGroup parent) {
@@ -124,7 +138,6 @@ public class BrowserView extends ViewGroup {
                             }));
         } else {
             browser = null;
-
         }
         urlToLoad = null;
     }
@@ -142,18 +155,21 @@ public class BrowserView extends ViewGroup {
     @Override
     public void destroy() {
         super.destroy();
-        Log.info("close browser !");
+        Log.info("close browser!");
         Optional.ofNullable(browser)
                 .ifPresent(IBrowser::close);
     }
 
     @Override
     protected void onDraw(MatrixStack stack, int mouseX, int mouseY, float partialTicks) {
+        int[] packetLight = RenderHelper.decodeCombineLight(outsideLight);
+        int light = RenderHelper.getCombineLight(packetLight[0], packetLight[1], RenderHelper.decodeCombineLight(RenderHelper.light)[1]);
+
         Optional.ofNullable(browser)
                 .ifPresent(iBrowser -> {
                     ResourceLocation location = iBrowser.getTextureLocation();
                     Optional.ofNullable(location)
-                            .ifPresent(resourceLocation -> RenderHelper.blit2(stack, 0, 0, 0, 0, 0f, getWidth(), getHeight(), getHeight(), getWidth(), location));
+                            .ifPresent(resourceLocation -> RenderHelper.blit2(stack, 0, 0, 0, 0, 0f, getWidth(), getHeight(), getHeight(), getWidth(), light, location));
 
                 });
     }
@@ -162,7 +178,11 @@ public class BrowserView extends ViewGroup {
     public void onUpdate() {
         super.onUpdate();
         Optional.ofNullable(urlToLoad)
-                .ifPresent(s -> setUrlToLoad(urlToLoad));
+                .ifPresent(s -> {
+                    setUrl(urlToLoad);
+                    if(browser != null && browser.isActivate())
+                        urlToLoad = null;
+                });
 
     }
 
@@ -190,7 +210,8 @@ public class BrowserView extends ViewGroup {
 
     public String getUrlLoaded() {
         return Optional.ofNullable(browser)
-                .map(IBrowser::getURL).orElse(home);
+                .map(IBrowser::getURL)
+                .orElse(home);
     }
 
     @Override

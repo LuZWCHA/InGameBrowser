@@ -2,10 +2,7 @@ package top.nowandfuture.gamebrowser;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.EntityRendererManager;
-import net.minecraft.entity.EntityClassification;
-import net.minecraft.entity.EntitySize;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.Pose;
+import net.minecraft.entity.*;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.vector.Vector3d;
@@ -13,6 +10,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.checkerframework.checker.units.qual.C;
+import top.nowandfuture.gamebrowser.screens.MainScreen;
 import top.nowandfuture.mygui.MyScreen;
 
 import javax.annotation.Nonnull;
@@ -189,6 +187,40 @@ public class ScreenEntity extends ClientEntity {
         updateSizeByScreen();
     }
 
+    private boolean freeze = false;
+    private CompoundNBT screenNBT;
+
+    public boolean isFreeze(){
+        return freeze;
+    }
+
+    public void freezeScreen(){
+        if(!freeze) {
+            Optional.ofNullable(screen)
+                    .ifPresent(screen -> {
+                        screenNBT = new CompoundNBT();
+                        screen.writeNBT(screenNBT);
+                        screen.closeScreen();
+                    });
+            freeze = true;
+        }
+    }
+
+    public void unfreezeScreen(){
+        if(freeze) {
+            Optional.ofNullable(screen)
+                    .ifPresent(new Consumer<MyScreen>() {
+                        @Override
+                        public void accept(MyScreen screen) {
+                            // TODO: 2021/8/3 recover the screen by url
+                            screen.readNBT(screenNBT);
+                            screen.init(Minecraft.getInstance(), (int) (screenWidth / ScreenManager.BASE_SCALE * scale), (int) (screenWidth / ScreenManager.BASE_SCALE * scale));
+                        }
+                    });
+            freeze = false;
+        }
+    }
+
     public void setEmptyScreen(){
         this.screen = null;
     }
@@ -229,12 +261,7 @@ public class ScreenEntity extends ClientEntity {
     @Override
     public void onRemovedFromWorld() {
         super.onRemovedFromWorld();
-
-    }
-
-    @Override
-    public void remove() {
-        super.remove();
+        ScreenManager.getInstance().remove(this);
     }
 
     @Override
@@ -248,6 +275,16 @@ public class ScreenEntity extends ClientEntity {
         this.screenWidth = compound.getInt("screenWidth");
         this.screenWidth = compound.getInt("screenHeight");
         this.brightness = compound.getFloat("brightness");
+        this.scale = compound.getFloat("screenScale");
+        this.screenNBT = compound.getCompound("screenNBT");
+
+        if(screen == null){
+            this.screen = MainScreen.create(getUniqueID().toString(), getScreenWidth(),
+                    getScreenHeight(), getScale());
+        }
+        this.screen.readNBT(this.screenNBT);
+
+        System.out.println("read!!!");
     }
 
     @Override
@@ -256,7 +293,30 @@ public class ScreenEntity extends ClientEntity {
         compound.putInt("screenWidth", this.screenWidth);
         compound.putInt("screenHeight", this.screenHeight);
         compound.putFloat("brightness", this.brightness);
+        compound.putFloat("screenScale", this.scale);
+
+        if(screen != null){
+            screen.writeNBT(this.screenNBT);
+        }
+
+        compound.put("screenNBT", this.screenNBT);
+        System.out.println("write!!!");
     }
+
+    public void readScreen(CompoundNBT compound) {
+        this.screenNBT = compound.getCompound("screenNBT");
+        if(screen != null){
+            screen.readNBT(this.screenNBT);
+        }
+    }
+
+    public void writeScreen(CompoundNBT compound) {
+        if(screen != null){
+            screen.writeNBT(this.screenNBT);
+        }
+        compound.put("screenNBT", this.screenNBT);
+    }
+
 
     @Override
     public String toString() {
@@ -277,5 +337,10 @@ public class ScreenEntity extends ClientEntity {
             Optional.ofNullable(screen)
                     .ifPresent(screen -> resizeScreen());
         }
+    }
+
+    @Override
+    public boolean isInRangeToRenderDist(double distance) {
+        return super.isInRangeToRenderDist(distance);
     }
 }

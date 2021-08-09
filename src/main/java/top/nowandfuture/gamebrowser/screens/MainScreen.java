@@ -40,11 +40,17 @@ public class MainScreen extends MyScreen {
         compoundNBT.putString(URL, browserView.getUrlLoaded());
     }
 
+    //=================================== pre load data ======================================
+    private String url2Load = null;
+
+    // TODO: 2021/8/9 to create data cache when gui paused. and resume them when create the guis again.
+    //========================================================================================
     @Override
     public CompoundNBT readNBT(CompoundNBT compoundNBT) {
+        if(compoundNBT == null) return super.readNBT(null);
         String url = compoundNBT.getString(URL);
-        if(browserView.isActivate()){
-            browserView.setUrlToLoad(url);
+        if(!url.isEmpty()){
+            url2Load = url;
         }
         return compoundNBT;
     }
@@ -184,12 +190,13 @@ public class MainScreen extends MyScreen {
         searchBtn.setActionListener(new View.ActionListener() {
             @Override
             public void onClicked(View v, int mouseX, int mouseY, int btn) {
-                browserView.setUrlToLoad(editorView.getText());
+                browserView.setUrl(editorView.getText());
             }
         });
 
         //Browser View
         browserView = new BrowserView(contentLayout);
+        browserView.setUrlToLoad(url2Load);
         browserView.setBrowserRenderId(this.id);
         browserView.setFlowParentWidth(true);
         browserView.setFlowParentHeight(true);
@@ -218,6 +225,7 @@ public class MainScreen extends MyScreen {
         //=======================================================================================================================================================
 
         contentLayout.setClipping(true);
+        url2Load = null;
     }
 
     @Override
@@ -267,6 +275,12 @@ public class MainScreen extends MyScreen {
         //bottom area
         if (mouseY > height * p && mouseY > height - resizeArea) {
             bottom = true;
+        }
+    }
+
+    public void setOutSideLight(int light){
+        if(this.browserView != null) {
+            this.browserView.setOutsideLight(light);
         }
     }
 
