@@ -262,6 +262,11 @@ public abstract class MyScreen extends Screen {
 
     protected abstract void onLoad();
 
+    public void reLoad(){
+        isFirstInit = true;
+        init();
+    }
+
     protected void onLayout(int oldW, int oldH, int width, int height) {
         rootView.onSizeChanged(oldW, oldH, width, height);
     }

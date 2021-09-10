@@ -36,14 +36,14 @@ public class MainScreen extends MyScreen {
     }
 
     @Override
-    public void writeNBT(CompoundNBT compoundNBT) {
+    public void writeNBT(@Nonnull CompoundNBT compoundNBT) {
         compoundNBT.putString(URL, browserView.getUrlLoaded());
     }
 
     //=================================== pre load data ======================================
     private String url2Load = null;
 
-    // TODO: 2021/8/9 to create data cache when gui paused. and resume them when create the guis again.
+    // TODO: 2021/8/9 to create data cache when gui paused. and resume them when create the GUI again.
     //========================================================================================
     @Override
     public CompoundNBT readNBT(CompoundNBT compoundNBT) {
@@ -290,6 +290,18 @@ public class MainScreen extends MyScreen {
         double realScale = ScreenManager.BASE_SCALE * scale;
         mainScreen.setGuiLeft(0);
         mainScreen.setGuiTop(0);
+        mainScreen.resize(Minecraft.getInstance(), (int) (width / realScale), (int) (height / realScale));
+
+        return mainScreen;
+    }
+
+    public static MainScreen create(String url, String id, double width, double height, float scale) {
+
+        MainScreen mainScreen = new MainScreen(id, ITextComponent.getTextComponentOrEmpty(id));
+        double realScale = ScreenManager.BASE_SCALE * scale;
+        mainScreen.setGuiLeft(0);
+        mainScreen.setGuiTop(0);
+        mainScreen.url2Load = url;
         mainScreen.resize(Minecraft.getInstance(), (int) (width / realScale), (int) (height / realScale));
 
         return mainScreen;

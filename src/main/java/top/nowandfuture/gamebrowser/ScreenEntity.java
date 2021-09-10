@@ -9,14 +9,12 @@ import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import org.checkerframework.checker.units.qual.C;
 import top.nowandfuture.gamebrowser.screens.MainScreen;
 import top.nowandfuture.mygui.MyScreen;
 
 import javax.annotation.Nonnull;
 import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 public class ScreenEntity extends ClientEntity {
     public final static EntityType SCREEN_ENTITY_TYPE =
@@ -37,7 +35,7 @@ public class ScreenEntity extends ClientEntity {
     }
 
     @OnlyIn(Dist.CLIENT)
-    public void resizeScreen(){
+    public void resizeScreen() {
         AxisAlignedBB bb = getBoundingBox();
         if (world.isRemote() && screen != null) {
             int w = (int) Math.max(bb.getZSize(), bb.getXSize());
@@ -187,15 +185,15 @@ public class ScreenEntity extends ClientEntity {
         updateSizeByScreen();
     }
 
-    private boolean freeze = false;
+    private boolean freeze = true;
     private CompoundNBT screenNBT;
 
-    public boolean isFreeze(){
+    public boolean isFreeze() {
         return freeze;
     }
 
-    public void freezeScreen(){
-        if(!freeze) {
+    public void freezeScreen() {
+        if (!freeze) {
             Optional.ofNullable(screen)
                     .ifPresent(screen -> {
                         screenNBT = new CompoundNBT();
@@ -206,27 +204,39 @@ public class ScreenEntity extends ClientEntity {
         }
     }
 
-    public void unfreezeScreen(){
-        if(freeze) {
-            Optional.ofNullable(screen)
+    // TODO: 2021/8/11 ... this method should only be used when the entities not init.
+    public void setFreeze(boolean freeze) {
+        this.freeze = freeze;
+    }
+
+    public void unfreezeScreen() {
+
+        if (freeze) {
+
+            if(isAlive() && screen == null){
+                screen = createEmptyScreen();
+            }
+
+            Optional.of(screen)
                     .ifPresent(new Consumer<MyScreen>() {
                         @Override
                         public void accept(MyScreen screen) {
                             // TODO: 2021/8/3 recover the screen by url
                             screen.readNBT(screenNBT);
-                            screen.init(Minecraft.getInstance(), (int) (screenWidth / ScreenManager.BASE_SCALE * scale), (int) (screenWidth / ScreenManager.BASE_SCALE * scale));
+                            //Minecraft.getInstance(), (int) (screenWidth / ScreenManager.BASE_SCALE * scale), (int) (screenWidth / ScreenManager.BASE_SCALE * scale)
+                            screen.reLoad();
                         }
                     });
             freeze = false;
         }
     }
 
-    public void setEmptyScreen(){
+    public void setEmptyScreen() {
         this.screen = null;
     }
 
-    private void updateSizeByScreen(){
-        if(screen != null) {
+    private void updateSizeByScreen() {
+        if (screen != null) {
             this.screenWidth = (int) (screen.width * ScreenManager.BASE_SCALE / scale);
             this.screenHeight = (int) (screen.height * ScreenManager.BASE_SCALE / scale);
         }
@@ -259,12 +269,6 @@ public class ScreenEntity extends ClientEntity {
     }
 
     @Override
-    public void onRemovedFromWorld() {
-        super.onRemovedFromWorld();
-        ScreenManager.getInstance().remove(this);
-    }
-
-    @Override
     public boolean canBeCollidedWith() {
         return true;
     }
@@ -273,18 +277,30 @@ public class ScreenEntity extends ClientEntity {
     protected void readAdditional(CompoundNBT compound) {
         super.readAdditional(compound);
         this.screenWidth = compound.getInt("screenWidth");
-        this.screenWidth = compound.getInt("screenHeight");
+        this.screenHeight = compound.getInt("screenHeight");
         this.brightness = compound.getFloat("brightness");
         this.scale = compound.getFloat("screenScale");
         this.screenNBT = compound.getCompound("screenNBT");
 
-        if(screen == null){
-            this.screen = MainScreen.create(getUniqueID().toString(), getScreenWidth(),
-                    getScreenHeight(), getScale());
+        if (!freeze) {
+            if (screen == null) {
+                this.screen = createEmptyScreen();
+            }
+
+            this.screen.readNBT(this.screenNBT);
         }
-        this.screen.readNBT(this.screenNBT);
 
         System.out.println("read!!!");
+    }
+
+    private MyScreen createEmptyScreen(){
+        return MainScreen.create(getUniqueID().toString(), getScreenWidth(),
+                getScreenHeight(), getScale());
+    }
+
+    private MyScreen createEmptyScreen(String url){
+        return MainScreen.create(url, getUniqueID().toString(), getScreenWidth(),
+                getScreenHeight(), getScale());
     }
 
     @Override
@@ -295,7 +311,9 @@ public class ScreenEntity extends ClientEntity {
         compound.putFloat("brightness", this.brightness);
         compound.putFloat("screenScale", this.scale);
 
-        if(screen != null){
+        if(this.screenNBT == null) this.screenNBT = new CompoundNBT();
+
+        if (screen != null) {
             screen.writeNBT(this.screenNBT);
         }
 
@@ -305,13 +323,13 @@ public class ScreenEntity extends ClientEntity {
 
     public void readScreen(CompoundNBT compound) {
         this.screenNBT = compound.getCompound("screenNBT");
-        if(screen != null){
+        if (screen != null) {
             screen.readNBT(this.screenNBT);
         }
     }
 
     public void writeScreen(CompoundNBT compound) {
-        if(screen != null){
+        if (screen != null) {
             screen.writeNBT(this.screenNBT);
         }
         compound.put("screenNBT", this.screenNBT);
@@ -324,6 +342,8 @@ public class ScreenEntity extends ClientEntity {
                 "screenWidth=" + screenWidth +
                 ", screenHeight=" + screenHeight +
                 ", brightness=" + brightness +
+                ", scale=" + scale +
+                ", screenNBT=" + screenNBT.toString() +
                 '}';
     }
 
@@ -332,11 +352,23 @@ public class ScreenEntity extends ClientEntity {
     }
 
     public void setScale(float scale) {
-        if(this.scale != scale) {
+        if (this.scale != scale) {
             this.scale = scale;
             Optional.ofNullable(screen)
                     .ifPresent(screen -> resizeScreen());
         }
+    }
+
+    @Override
+    public void onAddedToWorld() {
+        super.onAddedToWorld();
+        ScreenManager.getInstance().add(this);
+    }
+
+    @Override
+    public void onRemovedFromWorld() {
+        super.onRemovedFromWorld();
+        ScreenManager.getInstance().remove(this);
     }
 
     @Override

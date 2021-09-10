@@ -1,0 +1,7 @@
+{
+  "mod.gamebrowser.id": "InGame Browser",
+  "key.gamebrowser.remove": "remove the following browser",
+  "key.gamebrowser.summon": "summon a browser entity",
+  "key.gamebrowser.place": "place the following browser at the world",
+  "key.gamebrowser.rotate": "rotate the following browser(reverse when shift pressed)"
+}

@@ -180,7 +180,7 @@ public class BrowserView extends ViewGroup {
         Optional.ofNullable(urlToLoad)
                 .ifPresent(s -> {
                     setUrl(urlToLoad);
-                    if(browser != null && browser.isActivate())
+                    if(browser != null && browser.isActivate() && !browser.isPageLoading())
                         urlToLoad = null;
                 });
 
@@ -229,8 +229,6 @@ public class BrowserView extends ViewGroup {
         //int x, int y, int mods, int btn, boolean pressed, int ccnt
         Optional.ofNullable(browser).ifPresent(iBrowser -> iBrowser.injectMouseButton(mouseX, mouseY, getMask(), remapBtn(state), false, 1));
     }
-
-
 
     @Override
     protected boolean onPressed(int mouseX, int mouseY, int state) {

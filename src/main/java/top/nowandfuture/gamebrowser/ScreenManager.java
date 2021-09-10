@@ -104,7 +104,9 @@ public class ScreenManager {
         for (ScreenEntity sc :
                 screenEntities) {
             MyScreen screen = sc.getScreen();
-            screen.tick();
+            if(screen != null) {
+                screen.tick();
+            }
         }
 
         if (followScreen != null) {
@@ -177,6 +179,7 @@ public class ScreenManager {
 
     public ScreenEntity create(ClientWorld world, float rotationYaw, BlockPos blockPos, double width, double height){
         ScreenEntity screenEntity = new ScreenEntity(world);
+        screenEntity.setFreeze(false);
 
         screenEntity.rotationYaw = rotationYaw;
         MyScreen screen = MainScreen.create(screenEntity.getUniqueID().toString(), width, height, screenEntity.getScale());
@@ -185,7 +188,6 @@ public class ScreenManager {
         screenEntity.setPosition(blockPos.getX(), blockPos.getY(), blockPos.getZ());
 
         world.addEntity(screenEntity.getEntityId(), screenEntity);
-        screenEntities.add(screenEntity);
         return screenEntity;
     }
 
@@ -199,21 +201,25 @@ public class ScreenManager {
         screenEntity.rotationYaw = direction.getOpposite().getHorizontalAngle();
         screenEntity.setScreen(screen);
         screenEntity.setPosition(blockPos.getX(), blockPos.getY(), blockPos.getZ());
+        screenEntity.setFreeze(false);
 
         world.addEntity(screenEntity.getEntityId(), screenEntity);
-        screenEntities.add(screenEntity);
         return screenEntity;
     }
 
     public ScreenEntity createFromNBT(CompoundNBT nbt, ClientWorld world){
         ScreenEntity screenEntity = new ScreenEntity(world);
+        screenEntity.setFreeze(true);//not to create the screen
+
         screenEntity.read(nbt);
 
         world.addEntity(screenEntity.getEntityId(), screenEntity);
-        screenEntities.add(screenEntity);
         return screenEntity;
     }
 
+    public void add(ScreenEntity screenEntity){
+        screenEntities.add(screenEntity);
+    }
 
     private void setFollowScreen(@Nullable MyScreen followScreen) {
         this.followScreen = followScreen;
