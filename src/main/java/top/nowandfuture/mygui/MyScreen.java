@@ -262,7 +262,7 @@ public abstract class MyScreen extends Screen {
 
     protected abstract void onLoad();
 
-    public void reLoad(){
+    public void reload(){
         isFirstInit = true;
         init();
     }

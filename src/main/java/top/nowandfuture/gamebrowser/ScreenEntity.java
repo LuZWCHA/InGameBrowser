@@ -224,7 +224,7 @@ public class ScreenEntity extends ClientEntity {
                             // TODO: 2021/8/3 recover the screen by url
                             screen.readNBT(screenNBT);
                             //Minecraft.getInstance(), (int) (screenWidth / ScreenManager.BASE_SCALE * scale), (int) (screenWidth / ScreenManager.BASE_SCALE * scale)
-                            screen.reLoad();
+                            screen.reload();
                         }
                     });
             freeze = false;
@@ -289,8 +289,6 @@ public class ScreenEntity extends ClientEntity {
 
             this.screen.readNBT(this.screenNBT);
         }
-
-        System.out.println("read!!!");
     }
 
     private MyScreen createEmptyScreen(){
@@ -318,7 +316,6 @@ public class ScreenEntity extends ClientEntity {
         }
 
         compound.put("screenNBT", this.screenNBT);
-        System.out.println("write!!!");
     }
 
     public void readScreen(CompoundNBT compound) {

@@ -127,8 +127,6 @@ public class ClientProxy extends CommonProxy{
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
-                        // TODO: 2021/8/9 save the nbt to files
-                        System.out.println("save screen: " + entity.getPosition());
                     }
                 }
             });
