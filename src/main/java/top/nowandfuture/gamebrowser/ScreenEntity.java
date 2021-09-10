@@ -336,7 +336,7 @@ public class ScreenEntity extends ClientEntity {
     @Override
     public String toString() {
         return "ScreenEntity{" +
-                "screenWidth=" + screenWidth +
+                ", screenWidth=" + screenWidth +
                 ", screenHeight=" + screenHeight +
                 ", brightness=" + brightness +
                 ", scale=" + scale +
