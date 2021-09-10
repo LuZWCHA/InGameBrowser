@@ -46,7 +46,6 @@ public class ClientProxy extends CommonProxy{
         MinecraftForge.EVENT_BUS.register(this);
     }
 
-
     @SubscribeEvent
     public void onWorldRender(RenderWorldLastEvent worldLastEvent){
         Entity entity = Minecraft.getInstance().getRenderViewEntity();
