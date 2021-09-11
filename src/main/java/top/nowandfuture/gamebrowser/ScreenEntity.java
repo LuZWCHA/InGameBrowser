@@ -332,7 +332,6 @@ public class ScreenEntity extends ClientEntity {
         compound.put("screenNBT", this.screenNBT);
     }
 
-
     @Override
     public String toString() {
         return "ScreenEntity{" +
